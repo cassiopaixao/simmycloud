@@ -1,4 +1,4 @@
 simmycloud
 ==========
 
-SimMyCloud is a IaaS infraestructure simulator.
+SimMyCloud is an IaaS infraestructure simulator.
