@@ -7,7 +7,7 @@ class Environment:
         self._offline_servers = {}
         self._vm_hosts = {}
 
-    def add_server_type(self, server, quantity=1):
+    def add_servers_of_type(self, server, quantity=1):
         servers_count = len(self.online_servers) + len(self.offline_servers) + 1
         while quantity > 0:
             self.offline_servers(
