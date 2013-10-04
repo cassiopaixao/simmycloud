@@ -2,12 +2,18 @@
 class Config:
     def __init__(self):
         self.environment = None
-        self.schedule_strategy = None
-        self.migration_strategy = None
-        self.turn_off_strategy = None
+        self.strategies = Strategies()
+
+
+class Strategies:
+    def __init__(self):
+        self.scheduling = None
+        self.migration = None
+        self.powering_off = None
+
 
 class ConfigBuilder:
-    # Creates a Config object based on a file content
+    # Creates a Config object based on... file?
     def build(filename):
         config = Config()
         # build the Config object
