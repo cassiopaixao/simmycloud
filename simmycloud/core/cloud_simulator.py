@@ -7,7 +7,23 @@ class CloudSimulator:
         self._server_of_vm = dict()
         self._config = config
 
-    def process_event(self, event):
+
+    def simulate(self):
+        self._initialize()
+
+        while(self._has_event()):
+            self._process_event(self._next_event())
+
+
+    def _initialize(self):
+        print('cloud simulator initialized')
+
+
+    def _has_event(self):
+        return False
+
+
+    def _process_event(self, event):
         strategies = self._config.strategies
         environment = self._config.environment
 
