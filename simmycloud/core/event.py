@@ -7,7 +7,8 @@ class EventType:
 
 class Event:
 
-    def __init__(self, event_type, cpu=0.0, mem=0.0):
+    def __init__(self, event_type, time=0, cpu=0.0, mem=0.0):
         self.type = event_type
+        self.time = time
         self.cpu = cpu
         self.mem = mem

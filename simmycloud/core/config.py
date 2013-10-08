@@ -2,10 +2,10 @@
 class Config:
     def __init__(self):
         self.environment = None
-        self.strategies = Strategies()
+        self.strategies = _Strategies()
 
 
-class Strategies:
+class _Strategies:
     def __init__(self):
         self.scheduling = None
         self.migration = None

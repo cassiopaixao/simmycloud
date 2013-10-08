@@ -1,5 +1,5 @@
 
-from Event import EventType
+from core.event import EventType
 
 class CloudSimulator:
 

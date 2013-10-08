@@ -1,4 +1,5 @@
-import Server
+
+from core.server import Server
 
 class Environment:
 
