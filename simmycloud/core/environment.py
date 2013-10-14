@@ -9,14 +9,12 @@ class Environment:
         self._vm_hosts = {}
 
     def add_servers_of_type(self, server, quantity=1):
-        servers_count = len(self.online_servers) + len(self.offline_servers) + 1
+        servers_count = len(self._online_servers) + len(self._offline_servers) + 1
         while quantity > 0:
-            self.offline_servers(
-                    Server(str(self.servers_count),
-                           server.cpu,
-                           server.mem
-                    )
-            )
+            self._offline_servers[str(servers_count)] = Server(str(servers_count),
+                                                               server.cpu,
+                                                               server.mem
+                                                               )
             quantity -= 1
             servers_count += 1
 

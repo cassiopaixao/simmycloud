@@ -1,5 +1,5 @@
 
-import Strategy
+from ..strategy import Strategy
 
 class MigrationStrategy(Strategy):
 
