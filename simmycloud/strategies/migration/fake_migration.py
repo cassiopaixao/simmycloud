@@ -1,5 +1,5 @@
 
-from migration_strategy import MigrationStrategy
+from strategies.migration.migration_strategy import MigrationStrategy
 
 class FakeMigration(MigrationStrategy):
 

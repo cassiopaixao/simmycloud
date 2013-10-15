@@ -1,5 +1,5 @@
 
-from virtual_machine import VirtualMachine
+from core.virtual_machine import VirtualMachine
 
 class EventType:
     UNKNOWN = 0

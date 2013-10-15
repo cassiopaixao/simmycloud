@@ -1,5 +1,5 @@
 
-from powering_off_strategy import PoweringOffStrategy
+from strategies.powering_off.powering_off_strategy import PoweringOffStrategy
 
 class FakePoweringOff(PoweringOffStrategy):
 

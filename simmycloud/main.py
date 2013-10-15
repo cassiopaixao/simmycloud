@@ -18,7 +18,8 @@ config.strategies.scheduling = FakeScheduling()
 config.strategies.migration = FakeMigration()
 config.strategies.powering_off = FakePoweringOff()
 
-config.source_directory = sys.argv[1]
+# http://www.tutorialspoint.com/python/python_command_line_arguments.htm
+config.input_directory = sys.argv[1]
 
 environment = Environment()
 environment.add_servers_of_type(Server('', 1.0, 0.5))
@@ -26,6 +27,8 @@ config.environment = environment
 
 cloud_simulator = CloudSimulator(config)
 
-cloud_simulator.simulate()
+cloud_simulator.verify_input()
+
+#cloud_simulator.simulate()
 
 print('ok')

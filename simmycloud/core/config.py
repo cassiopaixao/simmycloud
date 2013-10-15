@@ -3,7 +3,7 @@ class Config:
     def __init__(self):
         self.environment = None
         self.strategies = _Strategies()
-        self.source_directory = None
+        self.input_directory = None
 
 
 class _Strategies:
