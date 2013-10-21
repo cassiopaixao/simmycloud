@@ -6,24 +6,24 @@ class Server:
 		self.cpu = cpu
 		self.mem = mem
 		self.vm_dict = {}
-		self.cpu_use = 0.0
-		self.mem_use = 0.0
+		self.cpu_alloc = 0.0
+		self.mem_alloc = 0.0
 
 	def schedule_vm(self, vm):
 		self.vm_dict[vm.name] = vm
-		self.cpu_use += vm.cpu
-		self.mem_use += vm.mem
+		self.cpu_alloc += vm.cpu
+		self.mem_alloc += vm.mem
 
 	def free_vm(self, vm_name):
 		vm = self.vm_dict.pop(vm_name)
-		self.cpu_use -= vm.cpu
-		self.mem_use -= vm.mem
+		self.cpu_alloc -= vm.cpu
+		self.mem_alloc -= vm.mem
 		return vm
 
 	def update_vm(self, vm):
 		vm_allocated = self.vm_dict[vm.name]
-		self.cpu_use += vm.cpu - vm_allocated.cpu
-		self.mem_use += vm.mem - vm_allocated.mem
+		self.cpu_alloc += vm.cpu - vm_allocated.cpu
+		self.mem_alloc += vm.mem - vm_allocated.mem
 		vm_allocated.cpu = vm.cpu
 		vm_allocated.mem = vm.mem
 		return vm_allocated

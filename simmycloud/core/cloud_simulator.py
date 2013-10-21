@@ -26,6 +26,7 @@ class CloudSimulator:
     def _initialize(self):
         self._event_queue = EventQueue(self._config.input_directory)
         self._event_queue.initialize()
+        self._config.initialize_all()
         print('cloud simulator initialized')
 
 
