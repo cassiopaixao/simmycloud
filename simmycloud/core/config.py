@@ -3,10 +3,21 @@ class Config:
     def __init__(self):
         self.environment = None
         self.strategies = _Strategies()
-        self.input_directory = None
+        self.statistics = None
+        self.params = dict()
 
     def initialize_all(self):
-        self.strategies.initialize_all(self)
+        self.strategies.set_config(self)
+        self.statistics.set_config(self)
+
+        self.strategies.initialize_all()
+        self.statistics.initialize()
+
+    def param(self, key):
+        return self.params[key]
+
+    def set_param(self, key, value):
+        self.params[key] = value
 
 
 class _Strategies:
@@ -15,10 +26,13 @@ class _Strategies:
         self.migration = None
         self.powering_off = None
 
-    def initialize_all(self, config_obj):
-        self.scheduling.set_config(config_obj)
-        self.migration.set_config(config_obj)
-        self.powering_off.set_config(config_obj)
+    def set_config(self, config):
+        self._config = config
+
+    def initialize_all(self):
+        self.scheduling.set_config(self._config)
+        self.migration.set_config(self._config)
+        self.powering_off.set_config(self._config)
 
         self.scheduling.initialize()
         self.migration.initialize()

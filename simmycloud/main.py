@@ -13,6 +13,7 @@ from strategies.powering_off.fake_powering_off import FakePoweringOff
 
 from core.environment import Environment
 from core.server import Server
+from core.statistics_manager import StatisticsManager
 
 config = Config()
 # config.strategies.scheduling = FakeScheduling()
@@ -21,11 +22,17 @@ config.strategies.migration = FakeMigration()
 config.strategies.powering_off = FakePoweringOff()
 
 # http://www.tutorialspoint.com/python/python_command_line_arguments.htm
-config.input_directory = sys.argv[1]
+config.set_param('input_directory', sys.argv[1])
+
+config.set_param('statistics.interval', 300)
+config.set_param('statistics.start_time', 0)
+
 
 environment = Environment()
-environment.add_servers_of_type(Server('', 1.0, 0.5), 15)
+environment.add_servers_of_type(Server('', 1.0, 0.5), 4)
 config.environment = environment
+
+config.statistics = StatisticsManager()
 
 cloud_simulator = CloudSimulator(config)
 

@@ -28,3 +28,9 @@ class Server:
 		vm_allocated.mem = vm.mem
 		return vm_allocated
 
+	def dump(self):
+		return '{} \t{} \t {}\t: {}'.format(self.name,
+                                            self.cpu_alloc,
+                                            self.mem_alloc,
+                                            ' '.join([vm.dump() for vm in self.vm_dict.values()])
+                                            )

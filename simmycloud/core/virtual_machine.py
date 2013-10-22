@@ -5,3 +5,9 @@ class VirtualMachine:
         self.name = name
         self.cpu = cpu
         self.mem = mem
+
+    def dump(self):
+        return "{}({},{})".format(self.name,
+                                  self.cpu,
+                                  self.mem
+                                  )
