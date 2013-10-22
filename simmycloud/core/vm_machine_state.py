@@ -61,7 +61,9 @@ class VMMachineState:
             elif state == VMMachineState.UNKNOWN:
                 unknown.append(vm_name)
 
-        print('{} {} {}'.format(finished, len(running), len(unknown)))
+        print('finished: {}'.format(finished))
+        print('running: {}'.format(len(running)))
+        print('unknown: {}'.format(len(unknown)))
         print(' '.join(running))
         print(' '.join(unknown))
 

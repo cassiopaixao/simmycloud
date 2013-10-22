@@ -43,3 +43,17 @@ class Environment:
 
     def all_servers(self):
         return self._online_servers.values() + self._online_servers.values()
+
+
+class EnvironmentBuilder:
+
+    @staticmethod
+    def build_test_environment():
+        env = Environment()
+        env.add_servers_of_type(Server('', 1.0, 0.5), 15)
+        return env
+
+    # TODO implement... or use the builder to read environment from file
+    @staticmethod
+    def build_google_environment():
+        pass

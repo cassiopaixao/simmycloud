@@ -13,7 +13,6 @@ class StatisticsManager:
         self.interval = int(self._config.param('statistics.interval'))
 
     def start(self):
-        self._print_all()
         pass
 
     def persist(self):
