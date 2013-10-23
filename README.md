@@ -3,19 +3,23 @@ simmycloud
 
 SimMyCloud is an IaaS infraestructure simulator.
 
-# How to execute
+## How to execute
 
 On the simmycloud path, execute
 
 [code]
-$ python3 main.py INPUT_DIRECTORY
+$ python3 main.py CONFIG_FILE [--verify]
 [/code]
 
 where
 
-* INPUT_DIRECTORY is the path where input files are. Only .csv files will be
-readed, in alphanumerical order.
+* CONFIG_FILE configuration file to use in execution (more information
+will be providade latter. there is a config.ini example file)
 
-# How to create new strategies
+* --verify if set, the simulator will only verify if the input data can be
+used (e.g. if a FINISH event came before a SUBMIT event to one virtual machine,
+so this input data will be considered invalid)
 
-# How to change simulation settings
+## How to create new strategies
+
+## How to change simulation settings
