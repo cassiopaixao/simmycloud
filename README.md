@@ -22,4 +22,9 @@ so this input data will be considered invalid)
 
 ## How to create new strategies
 
+For a while, get a look at the Fake strategies. Remember to use the same
+decorators, responsible to update the statistics.
+
 ## How to change simulation settings
+
+For a while, get a look at the config.ini file.
