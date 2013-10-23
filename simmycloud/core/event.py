@@ -75,7 +75,7 @@ class FileSetReader:
         self._config = config
 
     def initialize(self):
-        directory = self._config.param('input_directory')
+        directory = self._config.params['input_directory']
         self._files = os.listdir(directory)
         self._files[:] = [f for f in self._files if re.match('.*\.csv$', f) != None]
         self._files[:] = sorted(self._files)

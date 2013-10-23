@@ -17,17 +17,12 @@ class Config:
         self.params = dict()
 
     def initialize_all(self):
+        self.environment.set_config(self)
         self.strategies.set_config(self)
         self.statistics.set_config(self)
 
         self.strategies.initialize_all()
         self.statistics.initialize()
-
-    def param(self, key):
-        return self.params[key]
-
-    def set_param(self, key, value):
-        self.params[key] = value
 
 
 class _Strategies:
@@ -67,10 +62,7 @@ class ConfigBuilder:
             config.strategies.migration = cls._get_migration_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_powering_off_object(section['powering_off_strategy'])
 
-            config.set_param('input_directory', section['input_directory'])
-
-            config.set_param('statistics.interval', int(section['statistics_interval']))
-            config.set_param('statistics.start_time', int(section['statistics_start_time']))
+            config.params = dict(section)
 
             # TODO put the environment definition in external file
             environment = EnvironmentBuilder.build_test_environment()

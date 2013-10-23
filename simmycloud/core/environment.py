@@ -7,6 +7,10 @@ class Environment:
         self._online_servers = {}
         self._offline_servers = {}
         self._vm_hosts = {}
+        self._config = None
+
+    def set_config(self, config):
+        self._config = config
 
     def add_servers_of_type(self, server, quantity=1):
         servers_count = len(self._online_servers) + len(self._offline_servers) + 1
@@ -19,11 +23,13 @@ class Environment:
             servers_count += 1
 
     def turn_on_server(self, server_name):
+        self._config.statistics.add_to_counter('servers_turned_on')
         server = self._offline_servers.pop(server_name)
         self._online_servers[server_name] = server
         return server
 
     def turn_off_server(self, server_name):
+        self._config.statistics.add_to_counter('servers_turned_off')
         server = self._online_servers.pop(server_name)
         self._offline_servers[server_name] = server
 

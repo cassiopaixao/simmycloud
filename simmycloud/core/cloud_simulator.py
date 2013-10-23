@@ -14,7 +14,7 @@ class CloudSimulator:
         stats.start()
         while True:
             event = self._event_queue.next_event()
-            if event == None:
+            if event is None:
                 break
             self._process_event(event)
             while event.time > stats.next_control_time:
@@ -37,14 +37,17 @@ class CloudSimulator:
         environment = self._config.environment
 
         if event.type == EventType.SUBMIT:
+            self._config.statistics.add_to_counter('submit_events')
             strategies.scheduling.schedule_vm(event.vm)
 
         elif event.type == EventType.UPDATE:
+            self._config.statistics.add_to_counter('update_events')
             server = environment.get_server_of_vm(event.vm.name)
             server.update_vm(event.vm)
             strategies.migration.migrate_from_server_if_necessary(server)
 
         elif event.type == EventType.FINISH:
+            self._config.statistics.add_to_counter('finish_events')
             server = environment.get_server_of_vm(event.vm.name)
             server.free_vm(event.vm.name)
             strategies.powering_off.power_off_if_necessary(server)

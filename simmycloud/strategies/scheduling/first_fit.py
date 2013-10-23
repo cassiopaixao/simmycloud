@@ -3,6 +3,7 @@ from strategies.scheduling.scheduling_strategy import SchedulingStrategy
 
 class FirstFit(SchedulingStrategy):
 
+    @SchedulingStrategy.schedule_vm_statistics
     def schedule_vm(self, vm):
         servers = self._config.environment.online_servers()
         for server in servers:
