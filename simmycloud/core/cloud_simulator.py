@@ -1,6 +1,6 @@
 
 from core.event import EventType, EventQueue
-from core.vm_machine_state import VMMachineState
+from core.vm_machine_state import InputFilter, InputVerifier
 
 class CloudSimulator:
 
@@ -22,9 +22,18 @@ class CloudSimulator:
         stats.finish()
 
     def verify_input(self):
-        machine_state = VMMachineState()
-        machine_state.set_config(self._config)
-        machine_state.verify()
+        input_verifier = InputVerifier()
+        input_verifier.set_config(self._config)
+        if input_verifier.is_valid():
+            print("Input is valid\n")
+        else:
+            print("Input is invalid\n")
+            input_verifier.print_statistics()
+
+    def filter_input(self):
+        input_filter = InputFilter()
+        input_filter.set_config(self._config)
+        input_filter.filter()
 
     def _initialize(self):
         self._event_queue = EventQueue()

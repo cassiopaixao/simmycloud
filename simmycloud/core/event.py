@@ -52,7 +52,11 @@ class EventBuilder:
 class EventQueue:
 
     def __init__(self):
+        self._clear()
+
+    def _clear(self):
         self._fileset = FileSetReader()
+        self._event = None
 
     def set_config(self, config):
         self._config = config
@@ -62,19 +66,30 @@ class EventQueue:
         self._fileset.initialize()
 
     def next_event(self):
-        line =  self._fileset.next_line()
-        return EventBuilder.build(line)
+        self._line =  self._fileset.next_line()
+        return EventBuilder.build(self._line)
+
+    def current_event(self):
+        return self._event
+
+    def current_line(self):
+        return self._fileset.current_line()
 
 
 class FileSetReader:
     def __init__(self):
+        self._clear()
+
+    def _clear(self):
         self._opened_file = None
         self._file_index = -1
+        self._line = None
 
     def set_config(self, config):
         self._config = config
 
     def initialize(self):
+        self._clear()
         directory = self._config.params['input_directory']
         self._files = os.listdir(directory)
         self._files[:] = [f for f in self._files if re.match('.*\.csv$', f) != None]
@@ -84,13 +99,16 @@ class FileSetReader:
         self._load_next_file()
 
     def next_line(self):
-        line = self._opened_file.readline()
-        if len(line) == 0:
+        self._line = self._opened_file.readline()
+        if len(self._line) == 0:
             self._load_next_file()
             if self._opened_file == None:
                 return None
-            line = self._opened_file.readline()
-        return line
+            self._line = self._opened_file.readline()
+        return self._line
+
+    def current_line(self):
+        return self._line
 
     def _load_next_file(self):
         if self._opened_file != None:
