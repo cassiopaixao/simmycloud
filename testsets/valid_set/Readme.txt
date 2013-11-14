@@ -1,3 +1,2 @@
 # expected result while verifying this set
-4 6 0
-3418314-1 3418368-1 3418368-2 3418380-0 3418380-1 3418400-1
+Input is valid

@@ -1,0 +1,2 @@
+time,scheduling_strategy,migration_strategy,powering_off_strategy,submit_events,update_events,finish_events,online_servers,servers_turned_on,servers_turned_off,vms_not_allocated,vms_migrated
+0,FirstFit,FakeMigration,FakePoweringOff,10,16,4,2,2,0,0,0

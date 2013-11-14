@@ -7,6 +7,7 @@ class VMMachineState:
     UNKNOWN = 0
     RUNNING = 1
     DEAD = 2
+    INVALID_DEMAND = 3
 
     def __init__(self):
         self._vms = dict()
@@ -30,6 +31,10 @@ class VMMachineState:
         new_state = VMMachineState.UNKNOWN
         current_state = self._vms.get(event.vm.name)
 
+        if current_state in [VMMachineState.UNKNOWN,
+                             VMMachineState.INVALID_DEMAND]:
+            return
+
         if current_state == VMMachineState.RUNNING:
             if event.type == EventType.UPDATE:
                 new_state = VMMachineState.RUNNING
@@ -44,6 +49,9 @@ class VMMachineState:
             if event.type == EventType.SUBMIT:
                 new_state = VMMachineState.RUNNING
 
+        if new_state == VMMachineState.RUNNING and (0 in [event.vm.cpu, event.vm.mem]):
+            new_state = VMMachineState.INVALID_DEMAND
+
         self._vms[event.vm.name] = new_state
 
 
@@ -53,30 +61,35 @@ class InputVerifier(VMMachineState):
         self.run()
 
         for vm_name, state in self._vms.items():
-            if state == VMMachineState.UNKNOWN:
+            if state in [VMMachineState.UNKNOWN, VMMachineState.INVALID_DEMAND]:
                 return False
         return True
 
     def print_statistics(self):
         finished = 0
-        running = []
+        running = 0
         unknown = []
+        invalid_demand = []
 
         for vm_name, state in self._vms.items():
             if state == VMMachineState.DEAD:
                 finished += 1
 
             elif state == VMMachineState.RUNNING:
-                running.append(vm_name)
+                running += 1
 
             elif state == VMMachineState.UNKNOWN:
                 unknown.append(vm_name)
 
+            elif state == VMMachineState.INVALID_DEMAND:
+                invalid_demand.append(vm_name)
+
         print('finished: {}'.format(finished))
-        print('running: {}'.format(len(running)))
+        print('running: {}'.format(running))
         print('unknown: {}'.format(len(unknown)))
-        print(' '.join(running))
+        print('invalid_demand: {}'.format(len(invalid_demand)))
         print(' '.join(unknown))
+        print(' '.join(invalid_demand))
 
 
 class InputFilter(VMMachineState):
@@ -93,11 +106,11 @@ class InputFilter(VMMachineState):
         output_file_number = 1
         event_counter = 0
 
-        unknown = []
+        filtered = []
 
         for vm_name, state in self._vms.items():
-            if state == VMMachineState.UNKNOWN:
-                unknown.append(vm_name)
+            if state in [VMMachineState.UNKNOWN, VMMachineState.INVALID_DEMAND]:
+                filtered.append(vm_name)
 
         out = open(("%s/%05d.csv" % (output_directory, output_file_number)), "w")
         self._event_queue.initialize()
@@ -105,7 +118,7 @@ class InputFilter(VMMachineState):
             event = self._event_queue.next_event()
             if event == None:
                 break
-            elif event.vm.name not in unknown:
+            elif event.vm.name not in filtered:
                 out.write(self._event_queue.current_line())
                 event_counter += 1
                 if event_counter == 100000:

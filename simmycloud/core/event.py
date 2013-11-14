@@ -33,10 +33,10 @@ class EventBuilder:
             return None
         data = csv_line.split(',')
         return Event(EventBuilder.get_event_type(int(data[5])),
-                     int(data[0]),
+                     int(data[0] if data[0] else 0),
                      '{}-{}'.format(data[2], data[3]),
-                     float(data[9]),
-                     float(data[10])
+                     float(data[9] if data[9] else 0),
+                     float(data[10] if data[10] else 0)
             )
 
     @staticmethod
