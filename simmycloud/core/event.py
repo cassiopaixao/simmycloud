@@ -32,7 +32,10 @@ class EventBuilder:
         if csv_line == None or len(csv_line) == 0:
             return None
         data = csv_line.split(',')
-        return Event(EventBuilder.get_event_type(int(data[5])),
+        # ignores 'missing event' records
+        event_type = EventBuilder.get_event_type(int(data[5])) if not data[1] \
+                                                               else EventType.UNKNOWN
+        return Event(event_type,
                      int(data[0] if data[0] else 0),
                      '{}-{}'.format(data[2], data[3]),
                      float(data[9] if data[9] else 0),
