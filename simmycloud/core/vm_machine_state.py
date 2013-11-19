@@ -121,8 +121,9 @@ class InputFilter(VMMachineState):
             elif event.vm.name not in filtered:
                 out.write(self._event_queue.current_line())
                 event_counter += 1
-                if event_counter == 100000:
+                if event_counter == 1000000:
                     out.close()
                     output_file_number += 1
                     out = open(("%s/%05d.csv" % (output_directory, output_file_number)), "w")
+                    event_counter = 0
         out.close()
