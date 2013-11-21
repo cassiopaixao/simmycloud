@@ -95,7 +95,6 @@ class InputVerifier(VMMachineState):
 class InputFilter(VMMachineState):
     def filter(self):
         self.initialize()
-        self.run()
 
         output_directory = re.sub('/?$', '_filtered/', self._config.params['input_directory'])
         try:
@@ -103,14 +102,16 @@ class InputFilter(VMMachineState):
         except OSError:
             raise Exception("Output directory '%s' already exists. Can't filter due to possible conflicts." % output_directory)
 
+        self.run()
+
         output_file_number = 1
         event_counter = 0
 
-        filtered = []
+        filtered = {}
 
         for vm_name, state in self._vms.items():
             if state in [VMMachineState.UNKNOWN, VMMachineState.INVALID_DEMAND]:
-                filtered.append(vm_name)
+                filtered[vm_name] = True
 
         out = open(("%s/%05d.csv" % (output_directory, output_file_number)), "w")
         self._event_queue.initialize()
@@ -118,7 +119,7 @@ class InputFilter(VMMachineState):
             event = self._event_queue.next_event()
             if event == None:
                 break
-            elif event.vm.name not in filtered:
+            elif not event.vm.name in filtered:
                 out.write(self._event_queue.current_line())
                 event_counter += 1
                 if event_counter == 1000000:
