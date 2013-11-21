@@ -1,4 +1,5 @@
 
+import logging
 import configparser
 
 from strategies.scheduling.fake_scheduling import FakeScheduling
@@ -11,12 +12,18 @@ from core.statistics_manager import StatisticsManager
 
 class Config:
     def __init__(self):
+        self.identifier = ''
+        self.logging_level = logging.INFO
         self.environment = None
         self.strategies = _Strategies()
         self.statistics = None
         self.params = dict()
 
-    def initialize_all(self):
+    def initialize(self):
+        logging.basicConfig(level=self.logging_level)
+        self._initialize_all()
+
+    def _initialize_all(self):
         self.environment.set_config(self)
         self.strategies.set_config(self)
         self.statistics.set_config(self)
@@ -24,6 +31,8 @@ class Config:
         self.strategies.initialize_all()
         self.statistics.initialize()
 
+    def getLogger(self, obj):
+        return logging.getLogger("{}.{}".format(self.identifier, obj.__class__.__name__))
 
 class _Strategies:
     def __init__(self):
@@ -58,6 +67,8 @@ class ConfigBuilder:
             section = configs[section_name]
             config = Config()
 
+            config.identifier = section_name
+            config.logging_level = cls._get_logging_level(section['logging_level'])
             config.strategies.scheduling = cls._get_scheduling_object(section['scheduling_strategy'])
             config.strategies.migration = cls._get_migration_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_powering_off_object(section['powering_off_strategy'])
@@ -94,5 +105,12 @@ class ConfigBuilder:
     def _get_powering_off_object(cls, strategy):
         if strategy == 'strategies.powering_off.fake_powering_off.FakePoweringOff':
             return FakePoweringOff()
+        else:
+            return None
+
+    @classmethod
+    def _get_logging_level(cls, log_level):
+        if log_level in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+            return eval('logging.{}'.format(log_level))
         else:
             return None

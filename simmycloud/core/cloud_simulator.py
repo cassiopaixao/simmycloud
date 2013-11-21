@@ -39,7 +39,7 @@ class CloudSimulator:
         self._event_queue = EventQueue()
         self._event_queue.set_config(self._config)
         self._event_queue.initialize()
-        self._config.initialize_all()
+        self._config.initialize()
 
     def _process_event(self, event):
         strategies = self._config.strategies
