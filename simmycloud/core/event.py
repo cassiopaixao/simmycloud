@@ -11,6 +11,16 @@ class EventType:
     UPDATE = 2
     FINISH = 3
 
+    @staticmethod
+    def get_type(type_number):
+        if type_number == 1:
+            return 'SUBMIT'
+        elif type_number == 2:
+            return 'UPDATE'
+        elif type_number == 3:
+            return 'FINISH'
+        return 'UNKNOWN'
+
 
 class Event:
 
@@ -20,13 +30,14 @@ class Event:
         self.vm = VirtualMachine(vm_name, cpu, mem)
 
     def dump(self):
-        return '{}, {}, [{}]'.format(self.type,
+        return '{}, {}, [{}]'.format(EventType.get_type(self.type),
                                      self.time,
                                      self.vm.dump()
                                      )
 
 
 class EventBuilder:
+
     @staticmethod
     def build(csv_line):
         if csv_line == None or len(csv_line) == 0:
@@ -35,12 +46,13 @@ class EventBuilder:
         # ignores 'missing event' records
         event_type = EventBuilder.get_event_type(int(data[5])) if not data[1] \
                                                                else EventType.UNKNOWN
-        return Event(event_type,
-                     int(data[0] if data[0] else 0),
-                     '{}-{}'.format(data[2], data[3]),
-                     float(data[9] if data[9] else 0),
-                     float(data[10] if data[10] else 0)
+        event = Event(event_type,
+                      int(data[0] if data[0] else 0),
+                      '{}-{}'.format(data[2], data[3]),
+                      float(data[9] if data[9] else 0),
+                      float(data[10] if data[10] else 0)
             )
+        return event
 
     @staticmethod
     def get_event_type(source_value):
@@ -60,6 +72,7 @@ class EventQueue:
     def _clear(self):
         self._fileset = FileSetReader()
         self._event = None
+        self._loggger = None
 
     def set_config(self, config):
         self._config = config
@@ -67,10 +80,14 @@ class EventQueue:
 
     def initialize(self):
         self._fileset.initialize()
+        self._logger = self._config.getLogger(self)
 
     def next_event(self):
         self._line =  self._fileset.next_line()
-        return EventBuilder.build(self._line)
+        event = EventBuilder.build(self._line)
+        self._logger.debug('Event built: {}'.format(event.dump() if event is not None
+                                                                 else 'none'))
+        return event
 
     def current_event(self):
         return self._event

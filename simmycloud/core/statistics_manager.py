@@ -7,6 +7,7 @@ class StatisticsManager:
         self.next_control_time = 0
         self.interval = 1
         self._out = None
+        self._logger = None
         self._counters = _Counter()
 
     def set_config(self, config):
@@ -17,13 +18,20 @@ class StatisticsManager:
         self.interval = int(self._config.params['statistics_interval'])
         self.filename = self._config.params['statistics_filename']
         self._out = open(self.filename, "w")
+        self._logger = self._config.getLogger(self)
+        self._logger.info('StatisticsManager initialized.')
+        self._logger.info('Statistics file: {}'.format(self.filename))
+        self._logger.info('Next statistics time: {}'.format(self.next_control_time))
 
     def start(self):
         self._print_header()
 
     def persist(self):
+        self._logger.info('Persisting statistics for time: {}'.format(self.next_control_time))
         self._print_statistics()
+        self._logger.info('Persisted statistics for time: {}'.format(self.next_control_time))
         self.next_control_time += self.interval
+        self._logger.info('Next statistics time: {}'.format(self.next_control_time))
         self._clear_counters()
 
     def finish(self):

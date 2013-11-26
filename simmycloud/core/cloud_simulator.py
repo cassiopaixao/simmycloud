@@ -7,6 +7,8 @@ class CloudSimulator:
     def __init__(self, config):
         self._server_of_vm = dict()
         self._config = config
+        self._logger = None
+        self._event_queue = None
 
     def simulate(self):
         self._initialize()
@@ -36,10 +38,11 @@ class CloudSimulator:
         input_filter.filter()
 
     def _initialize(self):
+        self._config.initialize()
+        self._logger = self._config.getLogger(self)
         self._event_queue = EventQueue()
         self._event_queue.set_config(self._config)
         self._event_queue.initialize()
-        self._config.initialize()
 
     def _process_event(self, event):
         strategies = self._config.strategies
@@ -52,14 +55,20 @@ class CloudSimulator:
         elif event.type == EventType.UPDATE:
             self._config.statistics.add_to_counter('update_events')
             server = environment.get_server_of_vm(event.vm.name)
-            server.update_vm(event.vm)
-            strategies.migration.migrate_from_server_if_necessary(server)
+            if server is not None:
+                server.update_vm(event.vm)
+                strategies.migration.migrate_from_server_if_necessary(server)
+            else:
+                self._config.statistics.add_to_counter('vm_not_found_during_update')
 
         elif event.type == EventType.FINISH:
             self._config.statistics.add_to_counter('finish_events')
             server = environment.get_server_of_vm(event.vm.name)
-            server.free_vm(event.vm.name)
-            strategies.powering_off.power_off_if_necessary(server)
+            if server is not None:
+                server.free_vm(event.vm.name)
+                strategies.powering_off.power_off_if_necessary(server)
+            else:
+                self._config.statistics.add_to_counter('vm_not_found_during_finish')
 
         else:
             #deu zica
