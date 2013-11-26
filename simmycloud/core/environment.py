@@ -3,7 +3,8 @@ from core.server import Server
 
 class Environment:
 
-    def __init__(self):
+    def __init__(self, environment_builder):
+        self._builder = environment_builder
         self._online_servers = {}
         self._offline_servers = {}
         self._vm_hosts = {}
@@ -12,7 +13,10 @@ class Environment:
 
     def set_config(self, config):
         self._config = config
+
+    def initialize(self):
         self._logger = self._config.getLogger(self)
+        self._builder.build(self)
 
     def add_servers_of_type(self, server, quantity=1):
         servers_count = len(self._online_servers) + len(self._offline_servers) + 1
@@ -59,12 +63,5 @@ class Environment:
 class EnvironmentBuilder:
 
     @staticmethod
-    def build_test_environment():
-        env = Environment()
-        env.add_servers_of_type(Server('', 1.0, 0.5), 15)
-        return env
-
-    # TODO implement... or use the builder to read environment from file
-    @staticmethod
-    def build_google_environment():
-        pass
+    def build():
+        raise NotImplementedError

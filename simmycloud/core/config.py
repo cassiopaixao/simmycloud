@@ -7,7 +7,10 @@ from strategies.scheduling.first_fit import FirstFit
 from strategies.migration.fake_migration import FakeMigration
 from strategies.powering_off.fake_powering_off import FakePoweringOff
 
-from core.environment import EnvironmentBuilder
+from environments_builders.test_environment_builder import TestEnvironmentBuilder
+from environments_builders.google_environment_builder import GoogleEnvironmentBuilder
+
+from core.environment import Environment
 from core.statistics_manager import StatisticsManager
 
 class Config:
@@ -25,11 +28,12 @@ class Config:
 
     def _initialize_all(self):
         self.environment.set_config(self)
-        self.strategies.set_config(self)
         self.statistics.set_config(self)
+        self.strategies.set_config(self)
 
-        self.strategies.initialize_all()
+        self.environment.initialize()
         self.statistics.initialize()
+        self.strategies.initialize_all()
 
     def getLogger(self, obj):
         return logging.getLogger("{}.{}".format(self.identifier, obj.__class__.__name__))
@@ -72,12 +76,9 @@ class ConfigBuilder:
             config.strategies.scheduling = cls._get_scheduling_object(section['scheduling_strategy'])
             config.strategies.migration = cls._get_migration_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_powering_off_object(section['powering_off_strategy'])
+            config.environment = cls._get_environment_object(section['environment_builder'])
 
             config.params = dict(section)
-
-            # TODO put the environment definition in external file
-            environment = EnvironmentBuilder.build_test_environment()
-            config.environment = environment
 
             config.statistics = StatisticsManager()
 
@@ -107,6 +108,18 @@ class ConfigBuilder:
             return FakePoweringOff()
         else:
             return None
+
+    @classmethod
+    def _get_environment_object(cls, environment):
+        environment_builder = None
+        if environment == 'environments_builders.test_environment_builder.TestEnvironmentBuilder':
+            environment_builder = TestEnvironmentBuilder()
+        elif environment == 'environments_builders.google_environment_builder.GoogleEnvironmentBuilder':
+            environment_builder = GoogleEnvironmentBuilder()
+        else:
+            return None
+
+        return Environment(environment_builder)
 
     @classmethod
     def _get_logging_level(cls, log_level):
