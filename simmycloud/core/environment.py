@@ -16,9 +16,11 @@ class Environment:
 
     def initialize(self):
         self._logger = self._config.getLogger(self)
+        self._logger.info('EnvironmenBuilder: {}'.format(self._builder.__class__.__name__))
         self._builder.build(self)
 
     def add_servers_of_type(self, server, quantity=1):
+        self._logger.debug('Adding {} server(s) of type {}'.format(quantity, server.describe()))
         servers_count = len(self._online_servers) + len(self._offline_servers) + 1
         while quantity > 0:
             self._offline_servers[str(servers_count)] = Server(str(servers_count),
