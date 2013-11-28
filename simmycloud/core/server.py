@@ -14,8 +14,8 @@ class Server:
 		self.cpu_alloc += vm.cpu
 		self.mem_alloc += vm.mem
 
-	def free_vm(self, vm_name):
-		vm = self.vm_dict.pop(vm_name)
+	def free_vm(self, vm):
+		vm = self.vm_dict.pop(vm.name)
 		self.cpu_alloc -= vm.cpu
 		self.mem_alloc -= vm.mem
 		return vm

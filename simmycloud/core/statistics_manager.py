@@ -60,8 +60,6 @@ class StatisticsManager:
         header.append('servers_turned_off')
         header.append('vms_not_allocated')
         header.append('vms_migrated')
-        header.append('vm_not_found_during_update')
-        header.append('vm_not_found_during_finish')
         self._out.write(self.CSV_SEPARATOR.join(header))
 
     def _print_statistics(self):
@@ -78,8 +76,6 @@ class StatisticsManager:
         data.append(self._counters['servers_turned_off'])
         data.append(self._counters['vms_not_allocated'])
         data.append(self._counters['vms_migrated'])
-        data.append(self._counters['vm_not_found_during_update'])
-        data.append(self._counters['vm_not_found_during_finish'])
         data[:] = [str(value) for value in data]
         self._out.write('\n')
         self._out.write(self.CSV_SEPARATOR.join(data))

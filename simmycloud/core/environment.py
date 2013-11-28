@@ -48,6 +48,22 @@ class Environment:
         self._online_servers[server_name].schedule_vm(vm)
         self._vm_hosts[vm.name] = server_name
 
+    def update_vm_demands(self, vm):
+        server = self.get_server_of_vm(vm.name)
+        if server is not None:
+            self._logger.debug('Updating VM demands: {}'.format(vm.dump()))
+            server.update_vm(vm)
+        else:
+            self._logger.debug('Tried to update VM but not found: {}'.format(vm.dump()))
+
+    def free_vm_resources(self, vm):
+        server = self.get_server_of_vm(vm.name)
+        if server is not None:
+            self._logger.debug('Freeing VM resources from server {}: {}'.format(server.describe(), vm.dump()))
+            server.free_vm(vm)
+        else:
+            self._logger.debug('Tried to free VM but not found: {}'.format(vm.dump()))
+
     def get_server_of_vm(self, vm_name):
         server_name = self._vm_hosts.get(vm_name, None)
         return self._online_servers[server_name] if server_name is not None \

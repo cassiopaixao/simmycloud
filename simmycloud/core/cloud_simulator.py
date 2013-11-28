@@ -46,7 +46,6 @@ class CloudSimulator:
 
     def _process_event(self, event):
         strategies = self._config.strategies
-        environment = self._config.environment
 
         if event.type == EventType.SUBMIT:
             self._config.statistics.add_to_counter('submit_events')
@@ -54,21 +53,17 @@ class CloudSimulator:
 
         elif event.type == EventType.UPDATE:
             self._config.statistics.add_to_counter('update_events')
-            server = environment.get_server_of_vm(event.vm.name)
+            self._config.environment.update_vm_demands(event.vm)
+            server = self._config.environment.get_server_of_vm(event.vm.name)
             if server is not None:
-                server.update_vm(event.vm)
                 strategies.migration.migrate_from_server_if_necessary(server)
-            else:
-                self._config.statistics.add_to_counter('vm_not_found_during_update')
 
         elif event.type == EventType.FINISH:
             self._config.statistics.add_to_counter('finish_events')
-            server = environment.get_server_of_vm(event.vm.name)
+            self._config.environment.free_vm_resources(event.vm)
+            server = self._config.environment.get_server_of_vm(event.vm.name)
             if server is not None:
-                server.free_vm(event.vm.name)
                 strategies.powering_off.power_off_if_necessary(server)
-            else:
-                self._config.statistics.add_to_counter('vm_not_found_during_finish')
 
         else:
             #deu zica
