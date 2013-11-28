@@ -49,8 +49,9 @@ class Environment:
         self._vm_hosts[vm.name] = server_name
 
     def get_server_of_vm(self, vm_name):
-        server_name = self._vm_hosts[vm_name]
-        return self._online_servers[server_name]
+        server_name = self._vm_hosts.get(vm_name, None)
+        return self._online_servers[server_name] if server_name is not None
+                                                 else None
 
     def online_servers(self):
         return self._online_servers.values()
