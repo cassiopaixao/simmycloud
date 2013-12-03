@@ -39,4 +39,8 @@ if len(sys.argv) > 3:
         print('Usage: python3 {} CONFIG_FILE [--verify|--filter]\n'.format(sys.argv[0]))
         exit()
 else:
-    cloud_simulator.simulate()
+    try:
+        cloud_simulator.simulate()
+    except Exception as e:
+        config.getLogger(__name__).critical(e)
+        config.getLogger(__name__).exception(e)
