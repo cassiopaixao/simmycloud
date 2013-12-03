@@ -60,6 +60,7 @@ class Environment:
         server = self.get_server_of_vm(vm.name)
         if server is not None:
             self._logger.debug('Freeing VM resources from server {}: {}'.format(server.describe(), vm.dump()))
+            self._vm_hosts.pop(vm.name, None)
             server.free_vm(vm)
         else:
             self._logger.debug('Tried to free VM but not found: {}'.format(vm.dump()))
