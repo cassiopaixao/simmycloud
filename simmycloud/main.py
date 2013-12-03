@@ -6,18 +6,34 @@ import sys
 from core.cloud_simulator import CloudSimulator
 from core.config import ConfigBuilder
 
-if len(sys.argv) == 1:
-    print('Usage: python3 {} CONFIG_FILE [--verify|--filter]\n'.format(sys.argv[0]))
+def print_usage():
+    print('Usage: python3 {} CONFIG_FILE INSTANCE_NAME [--verify|--filter]'.format(sys.argv[0]))
+    print('CONFIG_FILE - file with simulations configs')
+    print('INSTANCE_NAME - name of the simulation you want to run/verify/filter, identified in CONFIG_FILE')
+    print('--verify - verifies the input data and outputs the VMs with invalid sequence of events')
+    print('--filter - writes a valid input in {input_directory}_filtered path, only with the events of valid VMs')
+    print()
+
+
+if len(sys.argv) < 3:
+    print_usage()
     exit()
 
-config = ConfigBuilder.build(sys.argv[1])[0]
+configs = ConfigBuilder.build_all(sys.argv[1])
+configs[:] = [c for c in configs if c.identifier == sys.argv[2]]
+
+if len(configs) == 1:
+    config = configs[0]
+else:
+    print_usage()
+    exit()
 
 cloud_simulator = CloudSimulator(config)
 
-if len(sys.argv) > 2:
-    if sys.argv[2] == '--verify':
+if len(sys.argv) > 3:
+    if sys.argv[3] == '--verify':
         cloud_simulator.verify_input()
-    elif sys.argv[2] == '--filter':
+    elif sys.argv[3] == '--filter':
         cloud_simulator.filter_input()
     else:
         print('Usage: python3 {} CONFIG_FILE [--verify|--filter]\n'.format(sys.argv[0]))
