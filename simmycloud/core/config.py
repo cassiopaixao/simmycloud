@@ -2,6 +2,8 @@
 import logging
 import configparser
 
+from logging.handlers import RotatingFileHandler
+
 from strategies.scheduling.fake_scheduling import FakeScheduling
 from strategies.scheduling.first_fit import FirstFit
 from strategies.migration.fake_migration import FakeMigration
@@ -23,7 +25,17 @@ class Config:
         self.params = dict()
 
     def initialize(self):
-        logging.basicConfig(level=self.logging_level)
+        logger = logging.getLogger(self.identifier)
+        handler = RotatingFileHandler(filename = self.params['log_filename'],
+                                      mode = 'w',
+                                      maxBytes = int(self.params['log_max_file_size']),
+                                      backupCount = int(self.params['log_max_backup_files']),
+                                      encoding = 'utf8'
+                                      )
+        formatter = logging.Formatter('%(levelname)s - %(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        logger.setLevel(self.logging_level)
+        logger.addHandler(handler)
         self._initialize_all()
 
     def _initialize_all(self):
@@ -60,8 +72,9 @@ class _Strategies:
 # use http://docs.python.org/3/library/configparser.html
 # TODO load strategies dinamically
 class ConfigBuilder:
+
     @classmethod
-    def build(cls, filename):
+    def build_all(cls, filename):
         configs = configparser.ConfigParser()
         configs.read(filename)
 
