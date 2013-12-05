@@ -9,7 +9,7 @@ class SchedulingStrategy(Strategy):
             if server is not None:
                 self._config.getLogger(self).debug('VM {} was allocated to server {}'.format(args[0].name, server.name))
             else:
-                self._config.statistics.add_to_counter('vms_not_allocated')
+                self._config.statistics.notify_event('vms_not_allocated')
                 self._config.getLogger(self).debug('VM {} was not allocated'.format(args[0].name))
             return server
         return new_schedule_vm

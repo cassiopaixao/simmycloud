@@ -48,18 +48,18 @@ class CloudSimulator:
         strategies = self._config.strategies
 
         if event.type == EventType.SUBMIT:
-            self._config.statistics.add_to_counter('submit_events')
+            self._config.statistics.notify_event('submit_events')
             strategies.scheduling.schedule_vm(event.vm)
 
         elif event.type == EventType.UPDATE:
-            self._config.statistics.add_to_counter('update_events')
+            self._config.statistics.notify_event('update_events')
             self._config.environment.update_vm_demands(event.vm)
             server = self._config.environment.get_server_of_vm(event.vm.name)
             if server is not None:
                 strategies.migration.migrate_from_server_if_necessary(server)
 
         elif event.type == EventType.FINISH:
-            self._config.statistics.add_to_counter('finish_events')
+            self._config.statistics.notify_event('finish_events')
             self._config.environment.free_vm_resources(event.vm)
             server = self._config.environment.get_server_of_vm(event.vm.name)
             if server is not None:

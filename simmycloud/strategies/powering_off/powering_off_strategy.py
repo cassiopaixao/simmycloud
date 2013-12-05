@@ -7,7 +7,7 @@ class PoweringOffStrategy(Strategy):
         def new_power_off_if_necessary(self, *args, **kwargs):
             res = func(self, *args, **kwargs)
             if res is None:
-                self._config.statistics.add_to_counter('servers_turned_off')
+                self._config.statistics.notify_event('servers_turned_off')
             return res
         return new_power_off_if_necessary
 

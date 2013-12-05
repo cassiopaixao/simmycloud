@@ -1,14 +1,17 @@
+from collections import defaultdict
 
 class StatisticsManager:
 
     CSV_SEPARATOR = ','
 
-    def __init__(self):
+    def __init__(self, builder):
+        self._builder = builder
         self.next_control_time = 0
         self.interval = 1
         self._out = None
         self._logger = None
-        self._counters = _Counter()
+        self._fields = []
+        self._listeners = defaultdict(list)
 
     def set_config(self, config):
         self._config = config
@@ -23,6 +26,17 @@ class StatisticsManager:
         self._logger.info('Statistics file: {}'.format(self.filename))
         self._logger.info('Next statistics time: {}'.format(self.next_control_time))
 
+        self._logger.info('StatisticsBuilder: {}'.format(self._builder.__class__.__name__))
+        self._builder.build(self)
+
+        for field in self._fields:
+            field.set_config(self._config)
+
+    def add_field(self, field):
+        self._fields.append(field)
+        for event in field.listens_to():
+            self._listeners[event].append(field)
+
     def start(self):
         self._print_header()
 
@@ -32,14 +46,15 @@ class StatisticsManager:
         self._logger.info('Persisted statistics for time: {}'.format(self.next_control_time))
         self.next_control_time += self.interval
         self._logger.info('Next statistics time: {}'.format(self.next_control_time))
-        self._clear_counters()
+        self._clear_fields()
 
     def finish(self):
         self._print_statistics()
         self._out.close()
 
-    def add_to_counter(self, counter, quantity=1):
-        self._counters[counter] += quantity
+    def notify_event(self, event, *args, **kwargs):
+        for listener in self._listeners[event]:
+            listener.notify(*args, **kwargs)
 
     def _print_all(self):
         print('TIME: {}'.format(self.next_control_time))
@@ -49,41 +64,51 @@ class StatisticsManager:
     def _print_header(self):
         header = []
         header.append('time')
-        header.append('scheduling_strategy')
-        header.append('migration_strategy')
-        header.append('powering_off_strategy')
-        header.append('submit_events')
-        header.append('update_events')
-        header.append('finish_events')
-        header.append('online_servers')
-        header.append('servers_turned_on')
-        header.append('servers_turned_off')
-        header.append('vms_not_allocated')
-        header.append('vms_migrated')
+        for field in self._fields:
+            header.append(field.label())
         self._out.write(self.CSV_SEPARATOR.join(header))
 
     def _print_statistics(self):
         data = []
         data.append(self.next_control_time)
-        data.append(self._config.strategies.scheduling.__class__.__name__)
-        data.append(self._config.strategies.migration.__class__.__name__)
-        data.append(self._config.strategies.powering_off.__class__.__name__)
-        data.append(self._counters['submit_events'])
-        data.append(self._counters['update_events'])
-        data.append(self._counters['finish_events'])
-        data.append(len(self._config.environment.online_servers()))
-        data.append(self._counters['servers_turned_on'])
-        data.append(self._counters['servers_turned_off'])
-        data.append(self._counters['vms_not_allocated'])
-        data.append(self._counters['vms_migrated'])
+        for field in self._fields:
+            data.append(field.value())
+
         data[:] = [str(value) for value in data]
+
         self._out.write('\n')
         self._out.write(self.CSV_SEPARATOR.join(data))
 
-    def _clear_counters(self):
-        self._counters = _Counter()
+    def _clear_fields(self):
+        for field in self._fields:
+            field.clear()
 
 
-class _Counter(dict):
-    def __missing__(self, key):
+class StatisticsManagerBuilder:
+    @staticmethod
+    def build(cls):
+        return StatisticsManager.new()
+
+
+class StatisticsField:
+    def __init__(self, label):
+        self._label = label
+        self.clear()
+
+    def set_config(self, config):
+        self._config = config
+
+    def clear(self):
+        pass
+
+    def notify(event, *args, **kwargs):
+        pass
+
+    def listens_to(self):
+        return []
+
+    def label(self):
+        return self._label
+
+    def value(self):
         return 0

@@ -14,7 +14,7 @@ class MigrationStrategy(Strategy):
             res = func(self, *args, **kwargs)
             new_server = self._config.environment.get_server_of_vm(args[0].name)
             if old_server != new_server:
-                self._config.statistics.add_to_counter('vms_migrated')
+                self._config.statistics.notify_event('vms_migrated')
             return res
         return new_migrate_vm
 

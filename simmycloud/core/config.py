@@ -12,6 +12,8 @@ from strategies.powering_off.fake_powering_off import FakePoweringOff
 from environments_builders.test_environment_builder import TestEnvironmentBuilder
 from environments_builders.google_environment_builder import GoogleEnvironmentBuilder
 
+from statistics_manager_builders.standard_statistics import StandardStatistics
+
 from core.environment import Environment
 from core.statistics_manager import StatisticsManager
 
@@ -90,10 +92,10 @@ class ConfigBuilder:
             config.strategies.migration = cls._get_migration_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_powering_off_object(section['powering_off_strategy'])
             config.environment = cls._get_environment_object(section['environment_builder'])
+            config.statistics = cls._get_statistics_manager_object(section['statistics_manager'])
 
             config.params = dict(section)
 
-            config.statistics = StatisticsManager()
 
             config_list.append(config)
 
@@ -133,6 +135,16 @@ class ConfigBuilder:
             return None
 
         return Environment(environment_builder)
+
+    @classmethod
+    def _get_statistics_manager_object(cls, statistics):
+        sm_builder = None
+        if statistics == 'statistics_manager_builders.standard_statistics.StandardStatistics':
+            sm_builder = StandardStatistics()
+        else:
+            return None
+
+        return StatisticsManager(sm_builder)
 
     @classmethod
     def _get_logging_level(cls, log_level):

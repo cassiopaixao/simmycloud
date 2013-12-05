@@ -16,7 +16,7 @@ class Environment:
 
     def initialize(self):
         self._logger = self._config.getLogger(self)
-        self._logger.info('EnvironmenBuilder: {}'.format(self._builder.__class__.__name__))
+        self._logger.info('EnvironmentBuilder: {}'.format(self._builder.__class__.__name__))
         self._builder.build(self)
 
     def add_servers_of_type(self, server, quantity=1):
@@ -31,14 +31,14 @@ class Environment:
             servers_count += 1
 
     def turn_on_server(self, server_name):
-        self._config.statistics.add_to_counter('servers_turned_on')
+        self._config.statistics.notify_event('servers_turned_on')
         self._logger.debug('Server {} being turned on'.format(server_name))
         server = self._offline_servers.pop(server_name)
         self._online_servers[server_name] = server
         return server
 
     def turn_off_server(self, server_name):
-        self._config.statistics.add_to_counter('servers_turned_off')
+        self._config.statistics.notify_event('servers_turned_off')
         self._logger.debug('Server {} being turned off'.format(server_name))
         server = self._online_servers.pop(server_name)
         self._offline_servers[server_name] = server
