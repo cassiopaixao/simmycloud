@@ -33,3 +33,16 @@ class MigrationStrategyField(StatisticsField):
 class PoweringOffStrategyField(StatisticsField):
     def value(self):
         return self._config.strategies.powering_off.__class__.__name__
+
+class OverloadedServersField(StatisticsField):
+    def value(self):
+        overloaded_servers = [s for s in self._config.environment.online_servers() if s.cpu_alloc > s.cpu and s.mem_alloc > s.mem]
+        return len(overloaded_servers)
+
+class MeanUseOfServersField(StatisticsField):
+    def value(self):
+        sum = 0
+        for server in self._config.environment.online_servers():
+            sum += (server.cpu_alloc * server.mem_alloc) / (server.cpu * server.mem)
+
+        return sum / len(self._config.environment.online_servers())
