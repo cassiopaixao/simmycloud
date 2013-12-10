@@ -57,6 +57,7 @@ class CloudSimulator:
             server = self._config.environment.get_server_of_vm(event.vm.name)
             if server is not None:
                 strategies.migration.migrate_from_server_if_necessary(server)
+                strategies.powering_off.power_off_if_necessary(server)
 
         elif event.type == EventType.FINISH:
             self._config.statistics.notify_event('finish_events')

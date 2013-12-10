@@ -28,6 +28,9 @@ class Server:
 		vm_allocated.mem = vm.mem
 		return vm_allocated
 
+	def vm_list(self):
+		return self.vm_dict.values()
+
 	def describe(self):
 		return '{} ({}, {})'.format(self.name,
 									self.cpu,

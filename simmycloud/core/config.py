@@ -7,7 +7,9 @@ from logging.handlers import RotatingFileHandler
 from strategies.scheduling.fake_scheduling import FakeScheduling
 from strategies.scheduling.first_fit import FirstFit
 from strategies.migration.fake_migration import FakeMigration
+from strategies.migration.migrate_if_overload import MigrateIfOverload
 from strategies.powering_off.fake_powering_off import FakePoweringOff
+from strategies.powering_off.power_off_if_empty import PowerOffIfEmpty
 
 from environments_builders.test_environment_builder import TestEnvironmentBuilder
 from environments_builders.google_environment_builder import GoogleEnvironmentBuilder
@@ -114,6 +116,8 @@ class ConfigBuilder:
     def _get_migration_object(cls, strategy):
         if strategy == 'strategies.migration.fake_migration.FakeMigration':
             return FakeMigration()
+        elif strategy == 'strategies.migration.migrate_if_overload.MigrateIfOverload':
+            return MigrateIfOverload()
         else:
             return None
 
@@ -121,6 +125,8 @@ class ConfigBuilder:
     def _get_powering_off_object(cls, strategy):
         if strategy == 'strategies.powering_off.fake_powering_off.FakePoweringOff':
             return FakePoweringOff()
+        elif strategy == 'strategies.powering_off.power_off_if_empty.PowerOffIfEmpty':
+            return PowerOffIfEmpty()
         else:
             return None
 

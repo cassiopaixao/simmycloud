@@ -17,4 +17,5 @@ class StandardStatistics(StatisticsManagerBuilder):
         statistics_manager.add_field(CounterField('servers_turned_off'))
         statistics_manager.add_field(CounterField('vms_not_allocated'))
         statistics_manager.add_field(CounterField('vms_migrated'))
+        statistics_manager.add_field(CounterField('couldnot_reallocate'))
         statistics_manager.add_field(MeanUseOfServersField('mean_use_of_servers'))
