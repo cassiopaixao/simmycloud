@@ -1,6 +1,5 @@
 
 from core.server import Server
-from core.cloud_simulator import CloudUtils
 
 class Environment:
 
@@ -58,7 +57,7 @@ class Environment:
             self._logger.debug('Tried to update VM but not found: {}'.format(vm.dump()))
 
     def free_vm_resources(self, vm):
-        server = self.get_server_of_vm(vm)
+        server = self.get_server_of_vm(vm.name)
         if server is not None:
             self._logger.debug('Freeing VM resources from server {}: {}'.format(server.describe(), vm.dump()))
             self._vm_hosts.pop(vm.name, None)
