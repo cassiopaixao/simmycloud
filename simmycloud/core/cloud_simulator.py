@@ -67,5 +67,17 @@ class CloudSimulator:
                 strategies.powering_off.power_off_if_necessary(server)
 
         else:
-            #deu zica
-            print('Unknown event: %s'.format(event.dump()))
+            self._logger.error('Unknown event: %s'.format(event.dump()))
+            raise Exception('Unknown event: %s'.format(event.dump()))
+
+        if server is not None and CloudUtils.is_overloaded(server):
+            self._logger.error('Server is overloaded: %s', server.dump())
+            for vm in server.vm_list():
+                self._logger.error('VM in server %s: %s', server.name, vm.dump())
+            raise Exception('Server is overloaded: %s', server.dump())
+
+
+class CloudUtils:
+    @staticmethod
+    def is_overloaded(server):
+        return (server.cpu_alloc > server.cpu or server.mem_alloc > server.mem)
