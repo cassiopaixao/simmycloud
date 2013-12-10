@@ -46,10 +46,11 @@ class CloudSimulator:
 
     def _process_event(self, event):
         strategies = self._config.strategies
+        server = None
 
         if event.type == EventType.SUBMIT:
             self._config.statistics.notify_event('submit_events')
-            strategies.scheduling.schedule_vm(event.vm)
+            server = strategies.scheduling.schedule_vm(event.vm)
 
         elif event.type == EventType.UPDATE:
             self._config.statistics.notify_event('update_events')
