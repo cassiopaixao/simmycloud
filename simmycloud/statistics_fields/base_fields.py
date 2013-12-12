@@ -1,3 +1,5 @@
+
+import time
 from core.statistics_manager import StatisticsField
 
 class CounterField(StatisticsField):
@@ -18,26 +20,32 @@ class OnlineServersField(StatisticsField):
     def value(self):
         return len(self._config.environment.online_servers())
 
+
 class EnvironmentField(StatisticsField):
     def value(self):
         return self._config.environment._builder.__class__.__name__
+
 
 class SchedulingStrategyField(StatisticsField):
     def value(self):
         return self._config.strategies.scheduling.__class__.__name__
 
+
 class MigrationStrategyField(StatisticsField):
     def value(self):
         return self._config.strategies.migration.__class__.__name__
+
 
 class PoweringOffStrategyField(StatisticsField):
     def value(self):
         return self._config.strategies.powering_off.__class__.__name__
 
+
 class OverloadedServersField(StatisticsField):
     def value(self):
         overloaded_servers = [s for s in self._config.environment.online_servers() if s.cpu_alloc > s.cpu and s.mem_alloc > s.mem]
         return len(overloaded_servers)
+
 
 class MeanUseOfServersField(StatisticsField):
     def value(self):
@@ -46,3 +54,11 @@ class MeanUseOfServersField(StatisticsField):
             sum += (server.cpu_alloc * server.mem_alloc) / (server.cpu * server.mem)
 
         return sum / len(self._config.environment.online_servers())
+
+
+class TimeIntervalSinceLastStatistics(StatisticsField):
+    def clear(self):
+        self.start_time = time.clock()
+
+    def value(self):
+        return time.clock() - self.start_time

@@ -1,5 +1,5 @@
 from core.statistics_manager import StatisticsManagerBuilder
-from statistics_fields.base_fields import CounterField, EnvironmentField, MigrationStrategyField, OnlineServersField, SchedulingStrategyField, PoweringOffStrategyField, MeanUseOfServersField, OverloadedServersField
+from statistics_fields.base_fields import CounterField, EnvironmentField, MigrationStrategyField, OnlineServersField, SchedulingStrategyField, PoweringOffStrategyField, MeanUseOfServersField, OverloadedServersField, TimeIntervalSinceLastStatistics
 
 class StandardStatistics(StatisticsManagerBuilder):
     @classmethod
@@ -19,3 +19,4 @@ class StandardStatistics(StatisticsManagerBuilder):
         statistics_manager.add_field(CounterField('vms_migrated'))
         statistics_manager.add_field(CounterField('couldnot_reallocate'))
         statistics_manager.add_field(MeanUseOfServersField('mean_use_of_servers'))
+        statistics_manager.add_field(TimeIntervalSinceLastStatistics('interval_time'))
