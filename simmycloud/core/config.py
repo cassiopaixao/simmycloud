@@ -1,20 +1,9 @@
 
 import logging
 import configparser
+import re
 
 from logging.handlers import RotatingFileHandler
-
-from strategies.scheduling.fake_scheduling import FakeScheduling
-from strategies.scheduling.first_fit import FirstFit
-from strategies.migration.fake_migration import FakeMigration
-from strategies.migration.migrate_if_overload import MigrateIfOverload
-from strategies.powering_off.fake_powering_off import FakePoweringOff
-from strategies.powering_off.power_off_if_empty import PowerOffIfEmpty
-
-from builders.environment.test_environment_builder import TestEnvironmentBuilder
-from builders.environment.google_environment_builder import GoogleEnvironmentBuilder
-
-from builders.statistics_manager.standard_statistics import StandardStatistics
 
 from core.environment import Environment
 from core.statistics_manager import StatisticsManager
@@ -74,7 +63,6 @@ class _Strategies:
 
 
 # use http://docs.python.org/3/library/configparser.html
-# TODO load strategies dinamically
 class ConfigBuilder:
 
     @classmethod
@@ -90,67 +78,25 @@ class ConfigBuilder:
 
             config.identifier = section_name
             config.logging_level = cls._get_logging_level(section['logging_level'])
-            config.strategies.scheduling = cls._get_scheduling_object(section['scheduling_strategy'])
-            config.strategies.migration = cls._get_migration_object(section['migration_strategy'])
-            config.strategies.powering_off = cls._get_powering_off_object(section['powering_off_strategy'])
-            config.environment = cls._get_environment_object(section['environment_builder'])
-            config.statistics = cls._get_statistics_manager_object(section['statistics_manager'])
+            config.strategies.scheduling = cls._get_object(section['scheduling_strategy'])
+            config.strategies.migration = cls._get_object(section['migration_strategy'])
+            config.strategies.powering_off = cls._get_object(section['powering_off_strategy'])
+            config.environment = Environment(cls._get_object(section['environment_builder']))
+            config.statistics = StatisticsManager(cls._get_object(section['statistics_manager']))
 
             config.params = dict(section)
-
 
             config_list.append(config)
 
         return config_list
 
     @classmethod
-    def _get_scheduling_object(cls, strategy):
-        if strategy == 'strategies.scheduling.fake_scheduling.FakeScheduling':
-            return FakeScheduling()
-        elif strategy == 'strategies.scheduling.first_fit.FirstFit':
-            return FirstFit()
-        else:
-            return None
-
-    @classmethod
-    def _get_migration_object(cls, strategy):
-        if strategy == 'strategies.migration.fake_migration.FakeMigration':
-            return FakeMigration()
-        elif strategy == 'strategies.migration.migrate_if_overload.MigrateIfOverload':
-            return MigrateIfOverload()
-        else:
-            return None
-
-    @classmethod
-    def _get_powering_off_object(cls, strategy):
-        if strategy == 'strategies.powering_off.fake_powering_off.FakePoweringOff':
-            return FakePoweringOff()
-        elif strategy == 'strategies.powering_off.power_off_if_empty.PowerOffIfEmpty':
-            return PowerOffIfEmpty()
-        else:
-            return None
-
-    @classmethod
-    def _get_environment_object(cls, environment):
-        environment_builder = None
-        if environment == 'builders.environment.test_environment_builder.TestEnvironmentBuilder':
-            environment_builder = TestEnvironmentBuilder()
-        elif environment == 'builders.environment.google_environment_builder.GoogleEnvironmentBuilder':
-            environment_builder = GoogleEnvironmentBuilder()
-        else:
-            return None
-
-        return Environment(environment_builder)
-
-    @classmethod
-    def _get_statistics_manager_object(cls, statistics):
-        sm_builder = None
-        if statistics == 'builders.statistics_manager.standard_statistics.StandardStatistics':
-            sm_builder = StandardStatistics()
-        else:
-            return None
-
-        return StatisticsManager(sm_builder)
+    def _get_object(cls, classpath):
+        module_name = re.match('(.*)\.[^.]*', classpath).group(1)
+        class_name = re.match('[^.]*\.(.*)', classpath).group(1)
+        module = __import__(module_name)
+        obj = eval('module.{}()'.format(class_name))
+        return obj
 
     @classmethod
     def _get_logging_level(cls, log_level):
