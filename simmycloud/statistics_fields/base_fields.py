@@ -56,9 +56,22 @@ class MeanUseOfServersField(StatisticsField):
         return sum / len(self._config.environment.online_servers())
 
 
-class TimeIntervalSinceLastStatistics(StatisticsField):
+class TimeIntervalSinceLastStatisticsField(StatisticsField):
     def clear(self):
         self.start_time = time.clock()
 
     def value(self):
         return time.clock() - self.start_time
+
+class VMsAllocatedField(StatisticsField):
+    def value(self):
+        return len(self._config.environment._vm_hosts)
+
+class SumOfUnallocatedVMsField(CounterField):
+    _counter = 0
+
+    def clean(self):
+        pass
+
+    def listens_to(self):
+        return ['vms_not_allocated', 'couldnot_reallocate']
