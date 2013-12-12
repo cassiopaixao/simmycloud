@@ -70,7 +70,7 @@ class VMsAllocatedField(StatisticsField):
 class SumOfUnallocatedVMsField(CounterField):
     _counter = 0
 
-    def clean(self):
+    def clear(self):
         pass
 
     def listens_to(self):
