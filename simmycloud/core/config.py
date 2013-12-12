@@ -11,10 +11,10 @@ from strategies.migration.migrate_if_overload import MigrateIfOverload
 from strategies.powering_off.fake_powering_off import FakePoweringOff
 from strategies.powering_off.power_off_if_empty import PowerOffIfEmpty
 
-from environments_builders.test_environment_builder import TestEnvironmentBuilder
-from environments_builders.google_environment_builder import GoogleEnvironmentBuilder
+from builders.environment.test_environment_builder import TestEnvironmentBuilder
+from builders.environment.google_environment_builder import GoogleEnvironmentBuilder
 
-from statistics_manager_builders.standard_statistics import StandardStatistics
+from builders.statistics_manager.standard_statistics import StandardStatistics
 
 from core.environment import Environment
 from core.statistics_manager import StatisticsManager
@@ -133,9 +133,9 @@ class ConfigBuilder:
     @classmethod
     def _get_environment_object(cls, environment):
         environment_builder = None
-        if environment == 'environments_builders.test_environment_builder.TestEnvironmentBuilder':
+        if environment == 'builders.environment.test_environment_builder.TestEnvironmentBuilder':
             environment_builder = TestEnvironmentBuilder()
-        elif environment == 'environments_builders.google_environment_builder.GoogleEnvironmentBuilder':
+        elif environment == 'builders.environment.google_environment_builder.GoogleEnvironmentBuilder':
             environment_builder = GoogleEnvironmentBuilder()
         else:
             return None
@@ -145,7 +145,7 @@ class ConfigBuilder:
     @classmethod
     def _get_statistics_manager_object(cls, statistics):
         sm_builder = None
-        if statistics == 'statistics_manager_builders.standard_statistics.StandardStatistics':
+        if statistics == 'builders.statistics_manager.standard_statistics.StandardStatistics':
             sm_builder = StandardStatistics()
         else:
             return None
