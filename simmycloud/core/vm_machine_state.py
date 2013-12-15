@@ -5,9 +5,10 @@ from core.event import EventType, EventQueue
 class VMMachineState:
 
     UNKNOWN = 0
-    RUNNING = 1
-    DEAD = 2
-    INVALID_DEMAND = 3
+    PENDING = 1
+    RUNNING = 2
+    DEAD = 3
+    INVALID_DEMAND = 4
 
     def __init__(self):
         self._vms = dict()
@@ -35,19 +36,28 @@ class VMMachineState:
                              VMMachineState.INVALID_DEMAND]:
             return
 
-        if current_state == VMMachineState.RUNNING:
-            if event.type == EventType.UPDATE:
+        if current_state == None: # UNSUBMITTED
+            if event.type == EventType.SUBMIT:
+                new_state = VMMachineState.PENDING
+
+        elif current_state == VMMachineState.PENDING:
+            if event.type == EventType.UPDATE_PENDING:
+                new_state = VMMachineState.PENDING
+            elif event.type == EventType.SCHEDULE:
+                new_state = VMMachineState.RUNNING
+            elif event.type == EventType.FINISH:
+                new_state = VMMachineState.DEAD
+
+        elif current_state == VMMachineState.RUNNING:
+            if event.type == EventType.UPDATE_RUNNING:
                 new_state = VMMachineState.RUNNING
             elif event.type == EventType.FINISH:
                 new_state = VMMachineState.DEAD
 
         elif current_state == VMMachineState.DEAD:
             if event.type == EventType.SUBMIT:
-                new_state = VMMachineState.RUNNING
+                new_state = VMMachineState.PENDING
 
-        elif current_state == None:
-            if event.type == EventType.SUBMIT:
-                new_state = VMMachineState.RUNNING
 
         if new_state == VMMachineState.RUNNING and (0 in [event.vm.cpu, event.vm.mem]):
             new_state = VMMachineState.INVALID_DEMAND
@@ -66,17 +76,22 @@ class InputVerifier(VMMachineState):
         return True
 
     def print_statistics(self):
-        finished = 0
+        pending = 0
         running = 0
+        finished = 0
         unknown = []
         invalid_demand = []
 
         for vm_name, state in self._vms.items():
-            if state == VMMachineState.DEAD:
-                finished += 1
+
+            if state == VMMachineState.PENDING:
+                pending += 1
 
             elif state == VMMachineState.RUNNING:
                 running += 1
+
+            elif state == VMMachineState.DEAD:
+                finished += 1
 
             elif state == VMMachineState.UNKNOWN:
                 unknown.append(vm_name)
@@ -84,8 +99,9 @@ class InputVerifier(VMMachineState):
             elif state == VMMachineState.INVALID_DEMAND:
                 invalid_demand.append(vm_name)
 
-        print('finished: {}'.format(finished))
+        print('pending: {}'.format(pending))
         print('running: {}'.format(running))
+        print('finished: {}'.format(finished))
         print('unknown: {}'.format(len(unknown)))
         print('invalid_demand: {}'.format(len(invalid_demand)))
         print(' '.join(unknown))

@@ -8,17 +8,16 @@ from core.virtual_machine import VirtualMachine
 class EventType:
     UNKNOWN = 0
     SUBMIT = 1
-    UPDATE = 2
-    FINISH = 3
+    UPDATE_PENDING = 2
+    SCHEDULE = 3
+    UPDATE_RUNNING = 4
+    FINISH = 5
 
     @staticmethod
     def get_type(type_number):
-        if type_number == 1:
-            return 'SUBMIT'
-        elif type_number == 2:
-            return 'UPDATE'
-        elif type_number == 3:
-            return 'FINISH'
+        if type_number in range(1,5):
+            types = ['', 'SUBMIT', 'UPDATE_PENDING', 'SCHEDULE', 'UPDATE_RUNNING', 'FINISH']
+            return types[type_number]
         return 'UNKNOWN'
 
 
@@ -58,11 +57,16 @@ class EventBuilder:
     def get_event_type(source_value):
         if source_value == 0:
             return EventType.SUBMIT
-        elif source_value in [1,7,8]:
-            return EventType.UPDATE
+        elif source_value == 1:
+            return EventType.SCHEDULE
         elif source_value in [2,3,4,5,6]:
             return EventType.FINISH
+        elif source_value == 7:
+            return EventType.UPDATE_PENDING
+        elif source_value == 8:
+            return EventType.UPDATE_RUNNING
         return EventType.UNKNOWN
+
 
 class EventQueue:
 
@@ -104,6 +108,7 @@ class FileSetReader:
         self._opened_file = None
         self._file_index = -1
         self._line = None
+        self._logger = None
 
     def set_config(self, config):
         self._config = config
@@ -115,6 +120,7 @@ class FileSetReader:
         self._files[:] = [f for f in self._files if re.match('.*\.csv$', f) != None]
         self._files[:] = sorted(self._files)
         self._files[:] = [directory + '/' + f for f in self._files]
+        self._logger = self._config.getLogger(self)
 
         self._load_next_file()
 
@@ -132,9 +138,12 @@ class FileSetReader:
 
     def _load_next_file(self):
         if self._opened_file != None:
+            self._logger.debug('Closing file: %s', self._opened_file._filename)
             self._opened_file.close()
         self._file_index += 1
         if self._file_index < len(self._files):
+            self._logger.debug('Opening file: %s', self._files[self._file_index])
             self._opened_file = fileinput.input(self._files[self._file_index])
         else:
+            self._logger.debug('No more files to open.')
             self._opened_file = None
