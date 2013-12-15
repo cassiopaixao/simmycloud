@@ -50,10 +50,14 @@ class OverloadedServersField(StatisticsField):
 class MeanUseOfServersField(StatisticsField):
     def value(self):
         sum = 0
-        for server in self._config.environment.online_servers():
+        online_servers = self._config.environment.online_servers()
+        for server in online_servers:
             sum += (server.cpu_alloc * server.mem_alloc) / (server.cpu * server.mem)
 
-        return sum / len(self._config.environment.online_servers())
+        if len(online_servers) > 0:
+            return sum / len(online_servers)
+        else:
+            return 0
 
 
 class TimeIntervalSinceLastStatisticsField(StatisticsField):

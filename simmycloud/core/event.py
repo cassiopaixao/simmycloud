@@ -15,7 +15,7 @@ class EventType:
 
     @staticmethod
     def get_type(type_number):
-        if type_number in range(1,5):
+        if type_number in range(1,6):
             types = ['', 'SUBMIT', 'UPDATE_PENDING', 'SCHEDULE', 'UPDATE_RUNNING', 'FINISH']
             return types[type_number]
         return 'UNKNOWN'
@@ -131,6 +131,7 @@ class FileSetReader:
             if self._opened_file == None:
                 return None
             self._line = self._opened_file.readline()
+        # self._logger.debug('Line read: %s', self._line.strip())
         return self._line
 
     def current_line(self):

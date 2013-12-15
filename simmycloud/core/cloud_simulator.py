@@ -48,11 +48,11 @@ class CloudSimulator:
         strategies = self._config.strategies
         server = None
 
-        if event.type == EventType.SUBMIT:
+        if event.type == EventType.SCHEDULE:
             self._config.statistics.notify_event('submit_events')
             server = strategies.scheduling.schedule_vm(event.vm)
 
-        elif event.type == EventType.UPDATE:
+        elif event.type == EventType.UPDATE_RUNNING:
             self._config.statistics.notify_event('update_events')
             self._config.environment.update_vm_demands(event.vm)
             server = self._config.environment.get_server_of_vm(event.vm.name)
@@ -66,6 +66,9 @@ class CloudSimulator:
             server = self._config.environment.get_server_of_vm(event.vm.name)
             if server is not None:
                 strategies.powering_off.power_off_if_necessary(server)
+
+        elif event.type in [EventType.SUBMIT, EventType.UPDATE_PENDING]:
+            pass
 
         else:
             self._logger.error('Unknown event: %s'.format(event.dump()))
