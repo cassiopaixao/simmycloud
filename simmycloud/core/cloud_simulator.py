@@ -30,7 +30,7 @@ class CloudSimulator:
             print("Input is valid\n")
         else:
             print("Input is invalid\n")
-            input_verifier.print_statistics()
+        input_verifier.print_statistics()
 
     def filter_input(self):
         input_filter = InputFilter()
