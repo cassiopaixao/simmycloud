@@ -136,8 +136,4 @@ output_dir = sys.argv[2]
 
 prefilter = PreFilterTaskEvents(input_dir, output_dir)
 
-print('comecou')
-
 prefilter.filter()
-
-print('terminou')
