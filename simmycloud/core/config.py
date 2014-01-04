@@ -43,6 +43,7 @@ class Config:
     def getLogger(self, obj):
         return logging.getLogger("{}.{}".format(self.identifier, obj.__class__.__name__))
 
+
 class _Strategies:
     def __init__(self):
         self.scheduling = None

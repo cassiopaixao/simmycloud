@@ -2,73 +2,81 @@
 import os
 import fileinput
 import re
+import bisect
+from collections import defaultdict
 
 from core.virtual_machine import VirtualMachine
+from core.pool import Pool
 
 class EventType:
     UNKNOWN = 0
     SUBMIT = 1
-    UPDATE_PENDING = 2
-    SCHEDULE = 3
-    UPDATE_RUNNING = 4
-    FINISH = 5
+    SCHEDULE = 2
+    UPDATE = 3
+    FINISH = 4
 
     @staticmethod
     def get_type(type_number):
         if type_number in range(1,6):
-            types = ['', 'SUBMIT', 'UPDATE_PENDING', 'SCHEDULE', 'UPDATE_RUNNING', 'FINISH']
+            types = ['', 'SUBMIT', 'SCHEDULE', 'UPDATE', 'FINISH']
             return types[type_number]
         return 'UNKNOWN'
 
 
 class Event:
 
-    def __init__(self, event_type, time=0, vm_name='', cpu=0.0, mem=0.0):
+    def __init__(self, event_type, time=0, vm_name='', cpu=0.0, mem=0.0, process_time=0):
         self.type = event_type
         self.time = time
+        self.process_time = process_time
         self.vm = VirtualMachine(vm_name, cpu, mem)
 
     def dump(self):
-        return '{}, {}, [{}]'.format(EventType.get_type(self.type),
-                                     self.time,
-                                     self.vm.dump()
-                                     )
+        return '{}, {}, [[{}], {}]'.format(EventType.get_type(self.type),
+                                           self.time,
+                                           self.vm.dump(),
+                                           self.process_time
+                                           )
 
 
 class EventBuilder:
 
     @staticmethod
-    def build(csv_line):
+    def build_submit_event(csv_line):
         if csv_line == None or len(csv_line) == 0:
             return None
+
+        # timestamp,vm_name,cpu,mem,process_time
         data = csv_line.split(',')
-        # ignores 'missing event' records
-        event_type = EventBuilder.get_event_type(int(data[5])) if not data[1] \
-                                                               else EventType.UNKNOWN
-        event = Event(event_type,
+        event = Event(EventType.SUBMIT,
                       int(data[0] if data[0] else 0),
-                      '{}-{}'.format(data[2], data[3]),
-                      float(data[9] if data[9] else 0),
-                      float(data[10] if data[10] else 0)
+                      data[1],
+                      float(data[2] if data[2] else 0),
+                      float(data[3] if data[3] else 0),
+                      int(data[4] if data[4] else 0)
             )
         return event
 
     @staticmethod
-    def get_event_type(source_value):
-        if source_value == 0:
-            return EventType.SUBMIT
-        elif source_value == 1:
-            return EventType.SCHEDULE
-        elif source_value in [2,3,4,5,6]:
-            return EventType.FINISH
-        elif source_value == 7:
-            return EventType.UPDATE_PENDING
-        elif source_value == 8:
-            return EventType.UPDATE_RUNNING
-        return EventType.UNKNOWN
+    def build_update_event(timestamp, vm_name, cpu, mem):
+        event = Event(EventType.UPDATE,
+                      timestamp,
+                      vm_name,
+                      float(cpu),
+                      float(mem)
+            )
+        return event
+
+    @staticmethod
+    def build_finish_event(timestamp, vm_name):
+        event = Event(EventType.FINISH,
+                      timestamp,
+                      vm_name
+            )
+        return event
 
 
-class EventQueue:
+class SubmitEventsQueue:
 
     def __init__(self):
         self._clear()
@@ -88,7 +96,7 @@ class EventQueue:
 
     def next_event(self):
         self._line =  self._fileset.next_line()
-        event = EventBuilder.build(self._line)
+        event = EventBuilder.build_submit_event(self._line)
         self._logger.debug('Event built: {}'.format(event.dump() if event is not None
                                                                  else 'none'))
         return event
@@ -98,6 +106,40 @@ class EventQueue:
 
     def current_line(self):
         return self._fileset.current_line()
+
+
+class UpdateEventsQueue(Pool):
+    pass
+
+
+class FinishEventsQueue:
+    def __init__(self):
+        self.__timestamps__ = list()
+        self.__events__ = defaultdict(list)
+
+    def __len__(self):
+        return len(self.__timestamps__)
+
+    def insert(self, event):
+        bisect.insort(self.__timestamps__, event.timestamp)
+        self.__events__[event.timestamp].append(event)
+
+    def first_before_or_equal(self, limit_timestamp):
+        if len(self.__timestamps__) != 0 and self.__timestamps__[0] <= limit_timestamp:
+            return self.first()
+        return None
+
+    def first(self):
+        event = None
+        if len(self.__timestamps__) != 0:
+            # TODO: very, very, very slow: each match removes the first element
+            timestamp = self.__timestamps__.pop(0)
+            event = self.__events__[timestamp].pop()
+
+            if len(self.__events__[timestamp]) == 0:
+                del self.__events__[timestamp]
+
+        return event
 
 
 class FileSetReader:
@@ -131,6 +173,8 @@ class FileSetReader:
             if self._opened_file == None:
                 return None
             self._line = self._opened_file.readline()
+        if self._line is not None:
+            self._line = self._line.strip()
         # self._logger.debug('Line read: %s', self._line.strip())
         return self._line
 
@@ -139,12 +183,12 @@ class FileSetReader:
 
     def _load_next_file(self):
         if self._opened_file != None:
-            self._logger.debug('Closing file: %s', self._opened_file._filename)
+            self._logger.info('Closing file: %s', self._opened_file._filename)
             self._opened_file.close()
         self._file_index += 1
         if self._file_index < len(self._files):
-            self._logger.debug('Opening file: %s', self._files[self._file_index])
+            self._logger.info('Opening file: %s', self._files[self._file_index])
             self._opened_file = fileinput.input(self._files[self._file_index])
         else:
-            self._logger.debug('No more files to open.')
+            self._logger.info('No more files to open.')
             self._opened_file = None

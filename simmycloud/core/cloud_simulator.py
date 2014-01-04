@@ -1,5 +1,5 @@
 
-from core.event import EventType, EventQueue
+from core.event import EventType, SubmitEventsQueue, UpdateEventsQueue, FinishEventsQueue
 from core.vm_machine_state import InputFilter, InputVerifier
 
 class CloudSimulator:
@@ -19,10 +19,17 @@ class CloudSimulator:
             if event is None:
                 break
             self._process_event(event)
+            # change:
             while event.time > stats.next_control_time:
                 stats.persist()
+            # to:
+            # stats.notify('time', timestamp)
+            # but only when one timestamp has been passed (it should be verified
+            # before the event processing)
+            # end
         stats.finish()
 
+    # deprecated
     def verify_input(self):
         input_verifier = InputVerifier()
         input_verifier.set_config(self._config)
@@ -32,6 +39,7 @@ class CloudSimulator:
             print("Input is invalid\n")
         input_verifier.print_statistics()
 
+    # deprecated
     def filter_input(self):
         input_filter = InputFilter()
         input_filter.set_config(self._config)
@@ -79,6 +87,55 @@ class CloudSimulator:
             for vm in server.vm_list():
                 self._logger.error('VM in server %s: %s', server.name, vm.dump())
             raise Exception('Server is overloaded: %s', server.dump())
+
+
+class EventQueue:
+    def __init__(self):
+        self._clear()
+
+    def _clear(self):
+        self.__submit_events__ = SubmitEventsQueue()
+        self.__update_events__ = UpdateEventsQueue()
+        self.__finish_events__ = FinishEventsQueue()
+        # self.__last_timestamp__ = 0
+        self.__submit_event_in_queue__ = None
+        self.__logger__ = None
+
+    def set_config(self, config):
+        self.__config__ = config
+        self.__submit_events__.set_config(config)
+
+    def initialize(self):
+        self.__submit_events__.initialize()
+        self.__logger__ = self.__config__.getLogger(self)
+
+    # 1º update event
+    # 2º finish event
+    # 3º submit event
+    def next_event(self):
+        event = None
+        if len(self.__update_events__) > 0:
+            event = self.__update_events__.pop()
+        else:
+            if self.__submit_event_in_queue__ is not None:
+                event = self.__submit_event_in_queue__
+            else:
+                event = self.__submit_events__.next_event()
+                self.__submit_event_in_queue__ = event
+
+            if event is not None:
+                finish_event = self.__finish_events__.first_before_or_equal(event.timestamp)
+            else:
+                finish_event = self.__finish_events__.first()
+
+            if finish_event is not None:
+                event = finish_event
+            else:
+                self.__submit_event_in_queue__ = None
+
+        self.__logger__.debug('Event to process: %s', (event.dump() if event is not None
+                                                                    else 'none'))
+        return event
 
 
 class CloudUtils:
