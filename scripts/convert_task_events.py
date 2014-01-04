@@ -104,7 +104,7 @@ class TaskEventsPreFilterer:
             # event_type,username,scheduling_class,priority,
             # resource_request_cpu,resource_request_ram,
             # resource_request_disk_space,different-machine_constraint
-            data = line.split(',')
+            data = line.strip().split(',')
             timestamp = data[0]
             missing_info = data[1]
             job_id = data[2]
