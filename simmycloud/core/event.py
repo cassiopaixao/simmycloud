@@ -10,15 +10,14 @@ from core.virtual_machine import VirtualMachine
 class EventType:
     UNKNOWN = 0
     SUBMIT = 1
-    SCHEDULE = 2
-    UPDATE = 3
-    FINISH = 4
-    NOTIFY = 5
+    UPDATE = 2
+    FINISH = 3
+    NOTIFY = 4
 
     @staticmethod
     def get_type(type_number):
-        if type_number in range(1,6):
-            types = ['', 'SUBMIT', 'SCHEDULE', 'UPDATE', 'FINISH', 'NOTIFY']
+        if type_number in range(1,5):
+            types = ['', 'SUBMIT', 'UPDATE', 'FINISH', 'NOTIFY']
             return types[type_number]
         return 'UNKNOWN'
 
@@ -173,7 +172,6 @@ class EventsQueue:
     __PRIORITY__ = [EventType.NOTIFY,
                     EventType.FINISH,
                     EventType.UPDATE,
-                    EventType.SCHEDULE,
                     EventType.SUBMIT,
                     EventType.UNKNOWN
                     ]

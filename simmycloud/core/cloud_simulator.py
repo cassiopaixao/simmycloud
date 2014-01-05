@@ -7,25 +7,16 @@ class CloudSimulator:
         self._server_of_vm = dict()
         self._config = config
         self._logger = None
-        self._event_queue = None
 
     def simulate(self):
         self._initialize()
         stats = self._config.statistics
         stats.start()
         while True:
-            event = self._event_queue.next_event()
+            event = self._config.events_queue.next_event()
             if event is None:
                 break
             self._process_event(event)
-            # change:
-            while event.time > stats.next_control_time:
-                stats.persist()
-            # to:
-            # stats.notify('time', timestamp)
-            # but only when one timestamp has been passed (it should be verified
-            # before the event processing)
-            # end
         stats.finish()
 
     def _initialize(self):
