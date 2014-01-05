@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 
 from core.environment import Environment
 from core.statistics_manager import StatisticsManager
+from core.event import EventsQueue
 
 class Config:
     def __init__(self):
@@ -15,6 +16,7 @@ class Config:
         self.environment = None
         self.strategies = _Strategies()
         self.statistics = None
+        self.events_queue = EventsQueue()
         self.params = dict()
 
     def initialize(self):
@@ -32,10 +34,12 @@ class Config:
         self._initialize_all()
 
     def _initialize_all(self):
+        self.events_queue.set_config(self)
         self.environment.set_config(self)
         self.statistics.set_config(self)
         self.strategies.set_config(self)
 
+        self.events_queue.initialize()
         self.environment.initialize()
         self.statistics.initialize()
         self.strategies.initialize_all()

@@ -2,11 +2,10 @@
 import os
 import fileinput
 import re
-import bisect
+import heapq
 from collections import defaultdict
 
 from core.virtual_machine import VirtualMachine
-from core.pool import Pool
 
 class EventType:
     UNKNOWN = 0
@@ -14,11 +13,12 @@ class EventType:
     SCHEDULE = 2
     UPDATE = 3
     FINISH = 4
+    NOTIFY = 5
 
     @staticmethod
     def get_type(type_number):
         if type_number in range(1,6):
-            types = ['', 'SUBMIT', 'SCHEDULE', 'UPDATE', 'FINISH']
+            types = ['', 'SUBMIT', 'SCHEDULE', 'UPDATE', 'FINISH', 'NOTIFY']
             return types[type_number]
         return 'UNKNOWN'
 
@@ -97,8 +97,6 @@ class SubmitEventsQueue:
     def next_event(self):
         self._line =  self._fileset.next_line()
         event = EventBuilder.build_submit_event(self._line)
-        self._logger.debug('Event built: {}'.format(event.dump() if event is not None
-                                                                 else 'none'))
         return event
 
     def current_event(self):
@@ -106,40 +104,6 @@ class SubmitEventsQueue:
 
     def current_line(self):
         return self._fileset.current_line()
-
-
-class UpdateEventsQueue(Pool):
-    pass
-
-
-class FinishEventsQueue:
-    def __init__(self):
-        self.__timestamps__ = list()
-        self.__events__ = defaultdict(list)
-
-    def __len__(self):
-        return len(self.__timestamps__)
-
-    def insert(self, event):
-        bisect.insort(self.__timestamps__, event.timestamp)
-        self.__events__[event.timestamp].append(event)
-
-    def first_before_or_equal(self, limit_timestamp):
-        if len(self.__timestamps__) != 0 and self.__timestamps__[0] <= limit_timestamp:
-            return self.first()
-        return None
-
-    def first(self):
-        event = None
-        if len(self.__timestamps__) != 0:
-            # TODO: very, very, very slow: each match removes the first element
-            timestamp = self.__timestamps__.pop(0)
-            event = self.__events__[timestamp].pop()
-
-            if len(self.__events__[timestamp]) == 0:
-                del self.__events__[timestamp]
-
-        return event
 
 
 class FileSetReader:
@@ -192,3 +156,69 @@ class FileSetReader:
         else:
             self._logger.info('No more files to open.')
             self._opened_file = None
+
+class EventsQueue:
+    def __init__(self):
+        self._clear()
+
+    def _clear(self):
+        self.__logger__ = None
+        self.__config__ = None
+        self.__heap__ = list()
+        self.__submit_events__ = SubmitEventsQueue()
+        self.__counters__ = defaultdict(lambda: 0)
+        self.__last_timestamp__ = -1
+
+    # TODO: too much dependent of simulation rules to be hard coded
+    __PRIORITY__ = [EventType.NOTIFY,
+                    EventType.FINISH,
+                    EventType.UPDATE,
+                    EventType.SCHEDULE,
+                    EventType.SUBMIT,
+                    EventType.UNKNOWN
+                    ]
+    def _get_priority(self, event_type):
+        return EventsQueue.__PRIORITY__.index(event_type)
+
+    def _add_submit_event(self):
+        new_event = self.__submit_events__.next_event()
+        if new_event is not None:
+            self.add_event(new_event)
+
+    def set_config(self, config):
+        self.__config__ = config
+        self.__submit_events__.set_config(config)
+
+    def initialize(self):
+        self.__submit_events__.initialize()
+        self.__logger__ = self.__config__.getLogger(self)
+
+    def add_event(self, event):
+        heapq.heappush(self.__heap__, (event.timestamp,
+                                       self._get_priority(event.type),
+                                       self.__counters__[event.timestamp],
+                                       event
+                                       ))
+        self.__counters__[event.timestamp] = self.__counters__[event.timestamp] + 1
+
+    def next_event(self):
+        event = None
+        if len(self.__heap__) == 0:
+            self._add_submit_event()
+
+        if len(self.__heap__) > 0:
+            event = heapq.heappop(self.__heap__)
+
+        if event is not None:
+            if event.type == EventType.SUBMIT:
+                self._add_submit_event()
+            if event.timestamp > self.__last_timestamp__:
+                self.__logger__.debug('Timestamp %d is over, had %d events.',
+                                      self.__last_timestamp__,
+                                      self.__counters__[self.__last_timestamp__])
+                del self.__counters__[self.__last_timestamp__]
+                self.__last_timestamp__ = event.timestamp
+
+        self.__logger__.debug('Event to process: %s', (event.dump() if event is not None
+                                                                    else 'none'))
+        return event
