@@ -7,7 +7,7 @@ from core.cloud_simulator import CloudSimulator
 from core.config import ConfigBuilder
 
 def print_usage():
-    print('Usage: python3 {} CONFIG_FILE INSTANCE_NAME [--verify|--filter]'.format(sys.argv[0]))
+    print('Usage: python3 {} CONFIG_FILE INSTANCE_NAME'.format(sys.argv[0]))
     print('CONFIG_FILE - file with simulations configs')
     print('INSTANCE_NAME - name of the simulation you want to run/verify/filter, identified in CONFIG_FILE')
     print('--verify - verifies the input data and outputs the VMs with invalid sequence of events')
@@ -30,17 +30,8 @@ else:
 
 cloud_simulator = CloudSimulator(config)
 
-if len(sys.argv) > 3:
-    if sys.argv[3] == '--verify':
-        cloud_simulator.verify_input()
-    elif sys.argv[3] == '--filter':
-        cloud_simulator.filter_input()
-    else:
-        print('Usage: python3 {} CONFIG_FILE [--verify|--filter]\n'.format(sys.argv[0]))
-        exit()
-else:
-    try:
-        cloud_simulator.simulate()
-    except Exception as e:
-        config.getLogger(__name__).critical(e)
-        config.getLogger(__name__).exception(e)
+try:
+    cloud_simulator.simulate()
+except Exception as e:
+    config.getLogger(__name__).critical(e)
+    config.getLogger(__name__).exception(e)

@@ -1,6 +1,5 @@
 
 from core.event import EventType
-from core.vm_machine_state import InputFilter, InputVerifier
 
 class CloudSimulator:
 
@@ -28,22 +27,6 @@ class CloudSimulator:
             # before the event processing)
             # end
         stats.finish()
-
-    # deprecated
-    def verify_input(self):
-        input_verifier = InputVerifier()
-        input_verifier.set_config(self._config)
-        if input_verifier.is_valid():
-            print("Input is valid\n")
-        else:
-            print("Input is invalid\n")
-        input_verifier.print_statistics()
-
-    # deprecated
-    def filter_input(self):
-        input_filter = InputFilter()
-        input_filter.set_config(self._config)
-        input_filter.filter()
 
     def _initialize(self):
         self._config.initialize()
