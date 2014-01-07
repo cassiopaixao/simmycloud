@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 from core.environment import Environment
 from core.statistics_manager import StatisticsManager
 from core.event import EventsQueue
+from core.vms_pool import PendingVMsPool
 
 class Config:
     def __init__(self):
@@ -17,6 +18,7 @@ class Config:
         self.strategies = _Strategies()
         self.statistics = None
         self.events_queue = EventsQueue()
+        self.vms_pool = PendingVMsPool()
         self.params = dict()
 
     def initialize(self):
