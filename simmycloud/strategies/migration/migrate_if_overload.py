@@ -1,5 +1,5 @@
 
-from strategies.migration.migration_strategy import MigrationStrategy
+from core.strategies import MigrationStrategy
 from core.cloud_simulator import CloudUtils
 
 class MigrateIfOverload(MigrationStrategy):

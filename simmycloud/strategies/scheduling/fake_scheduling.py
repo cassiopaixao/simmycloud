@@ -1,5 +1,5 @@
 
-from strategies.scheduling.scheduling_strategy import SchedulingStrategy
+from core.strategies import SchedulingStrategy
 
 class FakeScheduling(SchedulingStrategy):
 
