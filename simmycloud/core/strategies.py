@@ -1,4 +1,6 @@
 
+from core.vms_pool import PendingVMsPool
+
 class Strategy:
     def set_config(self, config):
         self._config = config
@@ -16,11 +18,14 @@ class SchedulingStrategy(Strategy):
     def schedule_vm_strategy(func):
         def new_schedule_vm(self, *args, **kwargs):
             server = func(self, *args, **kwargs)
+            vm = args[0]
             if server is not None:
-                self._config.getLogger(self).debug('VM {} was allocated to server {}'.format(args[0].name, server.name))
-            else:
-                self._config.statistics.notify_event('vms_not_allocated')
-                self._config.getLogger(self).debug('VM {} was not allocated'.format(args[0].name))
+                self._config.getLogger(self).debug('VM %s was allocated to server %s',
+                                                   vm.name, server.name)
+            elif vm not in self._config.vms_pool:
+                self._config.vms_pool.add_vm(vm, PendingVMsPool.LOW_PRIORITY)
+                self._config.statistics.notify_event('vms_added_to_pending')
+                self._config.getLogger(self).debug('VM %s was added to pending', vm.name)
             return server
         return new_schedule_vm
 
@@ -38,13 +43,15 @@ class MigrationStrategy(Strategy):
 
     def migrate_vm_strategy(func):
         def new_migrate_vm(self, *args, **kwargs):
-            old_server = self._config.environment.get_server_of_vm(args[0].name)
+            vm = args[0]
+            old_server = self._config.environment.get_server_of_vm(vm.name)
             res = func(self, *args, **kwargs)
-            new_server = self._config.environment.get_server_of_vm(args[0].name)
+            new_server = self._config.environment.get_server_of_vm(vm.name)
             if old_server != new_server:
                 self._config.statistics.notify_event('vms_migrated')
             if new_server is None:
-                self._config.statistics.notify_event('couldnot_reallocate')
+                self._config.vms_pool.add_vm(vm, PendingVMsPool.HIGH_PRIORITY)
+                self._config.statistics.notify_event('vms_paused')
             return res
         return new_migrate_vm
 
