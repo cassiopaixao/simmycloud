@@ -161,62 +161,62 @@ class EventsQueue:
         self._clear()
 
     def _clear(self):
-        self.__logger__ = None
-        self.__config__ = None
-        self.__heap__ = list()
-        self.__submit_events__ = SubmitEventsQueue()
-        self.__counters__ = defaultdict(lambda: 0)
-        self.__last_timestamp__ = -1
+        self._logger = None
+        self._config = None
+        self._heap = list()
+        self._submit_events = SubmitEventsQueue()
+        self._counters = defaultdict(lambda: 0)
+        self._last_timestamp = -1
 
     # TODO: too much dependent of simulation rules to be hard coded
-    __PRIORITY__ = [EventType.NOTIFY,
+    _PRIORITY = [EventType.NOTIFY,
                     EventType.FINISH,
                     EventType.UPDATE,
                     EventType.SUBMIT,
                     EventType.UNKNOWN
                     ]
     def _get_priority(self, event_type):
-        return EventsQueue.__PRIORITY__.index(event_type)
+        return EventsQueue._PRIORITY.index(event_type)
 
     def _add_submit_event(self):
-        new_event = self.__submit_events__.next_event()
+        new_event = self._submit_events.next_event()
         if new_event is not None:
             self.add_event(new_event)
 
     def set_config(self, config):
-        self.__config__ = config
-        self.__submit_events__.set_config(config)
+        self._config = config
+        self._submit_events.set_config(config)
 
     def initialize(self):
-        self.__submit_events__.initialize()
-        self.__logger__ = self.__config__.getLogger(self)
+        self._submit_events.initialize()
+        self._logger = self._config.getLogger(self)
 
     def add_event(self, event):
-        heapq.heappush(self.__heap__, (event.timestamp,
+        heapq.heappush(self._heap, (event.timestamp,
                                        self._get_priority(event.type),
-                                       self.__counters__[event.timestamp],
+                                       self._counters[event.timestamp],
                                        event
                                        ))
-        self.__counters__[event.timestamp] = self.__counters__[event.timestamp] + 1
+        self._counters[event.timestamp] = self._counters[event.timestamp] + 1
 
     def next_event(self):
         event = None
-        if len(self.__heap__) == 0:
+        if len(self._heap) == 0:
             self._add_submit_event()
 
-        if len(self.__heap__) > 0:
-            event = heapq.heappop(self.__heap__)
+        if len(self._heap) > 0:
+            event = heapq.heappop(self._heap)
 
         if event is not None:
             if event.type == EventType.SUBMIT:
                 self._add_submit_event()
-            if event.timestamp > self.__last_timestamp__:
-                self.__logger__.debug('Timestamp %d is over, had %d events.',
-                                      self.__last_timestamp__,
-                                      self.__counters__[self.__last_timestamp__])
-                del self.__counters__[self.__last_timestamp__]
-                self.__last_timestamp__ = event.timestamp
+            if event.timestamp > self._last_timestamp:
+                self._logger.debug('Timestamp %d is over, had %d events.',
+                                      self._last_timestamp,
+                                      self._counters[self._last_timestamp])
+                del self._counters[self._last_timestamp]
+                self._last_timestamp = event.timestamp
 
-        self.__logger__.debug('Event to process: %s', (event.dump() if event is not None
+        self._logger.debug('Event to process: %s', (event.dump() if event is not None
                                                                     else 'none'))
         return event

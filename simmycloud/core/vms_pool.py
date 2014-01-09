@@ -10,35 +10,35 @@ class PendingVMsPool:
         self._clear()
 
     def _clear(self):
-        self.__logger__ = None
-        self.__config__ = None
-        self.__high_priority__ = deque()
-        self.__low_priority__ = deque()
+        self._logger = None
+        self._config = None
+        self._high_priority = deque()
+        self._low_priority = deque()
 
     def set_config(self, config):
-        self.__config__ = config
+        self._config = config
 
     def initialize(self):
-        self.__logger__ = self.__config__.getLogger(self)
+        self._logger = self._config.getLogger(self)
 
     def add_vm(self, vm, priority=LOW_PRIORITY):
         if priority == PendingVMsPool.HIGH_PRIORITY:
-            self.__high_priority__.append(vm)
+            self._high_priority.append(vm)
         else:
-            self.__low_priority__.append(vm)
+            self._low_priority.append(vm)
 
     def pop_next(self):
-        if len(self.__high_priority__) > 0:
-            return self.__high_priority__.popleft()
-        elif len(self.__low_priority__) > 0:
-            return self.__low_priority__.popleft()
+        if len(self._high_priority) > 0:
+            return self._high_priority.popleft()
+        elif len(self._low_priority) > 0:
+            return self._low_priority.popleft()
         return None
 
     def get_ordered_list(self):
-        return list(self.__high_priority__) + list(self.__low_priority__)
+        return list(self._high_priority) + list(self._low_priority)
 
     def remove(self, vm):
-        if vm in self.__high_priority__:
-            self.__high_priority__.remove(vm)
+        if vm in self._high_priority:
+            self._high_priority.remove(vm)
         else:
-            self.__low_priority__.remove(vm)
+            self._low_priority.remove(vm)

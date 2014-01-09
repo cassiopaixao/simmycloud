@@ -16,5 +16,5 @@ class MigrateIfOverload(MigrationStrategy):
 
     @MigrationStrategy.migrate_vm_strategy
     def migrate_vm(self, vm):
-        self.__config__.environment.free_vm_resources(vm)
-        self.__config__.strategies.scheduling.schedule_vm(vm)
+        self._config.environment.free_vm_resources(vm)
+        self._config.strategies.scheduling.schedule_vm(vm)
