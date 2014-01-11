@@ -64,6 +64,24 @@ class MigrationStrategy(Strategy):
         raise NotImplementedError
 
 
+class PredictionStrategy(Strategy):
+
+    def predict_strategy(func):
+        def new_predict(self, *args, **kwargs):
+            new_demands = func(self, *args, **kwargs)
+            if new_demands is not None:
+                self._config.environment.update_vm_demands(new_demands)
+                self._config.statistics.notify_event('vms_updated')
+            return new_demands
+        return new_predict
+
+    """ Should return a new vm with the predicted demand.
+        Or None if no change should be made. """
+    @predict_strategy
+    def predict(self, vm):
+        raise NotImplementedError
+
+
 class PoweringOffStrategy(Strategy):
 
     def power_off_if_necessary_strategy(func):

@@ -52,6 +52,7 @@ class Config:
 
 class _Strategies:
     def __init__(self):
+        self.prediction = None
         self.scheduling = None
         self.migration = None
         self.powering_off = None
@@ -60,10 +61,12 @@ class _Strategies:
         self._config = config
 
     def initialize_all(self):
+        self.prediction.set_config(self._config)
         self.scheduling.set_config(self._config)
         self.migration.set_config(self._config)
         self.powering_off.set_config(self._config)
 
+        self.prediction.initialize()
         self.scheduling.initialize()
         self.migration.initialize()
         self.powering_off.initialize()
@@ -85,6 +88,7 @@ class ConfigBuilder:
 
             config.identifier = section_name
             config.logging_level = cls._get_logging_level(section['logging_level'])
+            config.strategies.prediction = cls._get_object(section['prediction_strategy'])
             config.strategies.scheduling = cls._get_object(section['scheduling_strategy'])
             config.strategies.migration = cls._get_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_object(section['powering_off_strategy'])
