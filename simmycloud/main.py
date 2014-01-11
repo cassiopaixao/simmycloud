@@ -10,8 +10,6 @@ def print_usage():
     print('Usage: python3 {} CONFIG_FILE INSTANCE_NAME'.format(sys.argv[0]))
     print('CONFIG_FILE - file with simulations configs')
     print('INSTANCE_NAME - name of the simulation you want to run/verify/filter, identified in CONFIG_FILE')
-    print('--verify - verifies the input data and outputs the VMs with invalid sequence of events')
-    print('--filter - writes a valid input in {input_directory}_filtered path, only with the events of valid VMs')
     print()
 
 

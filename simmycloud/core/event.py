@@ -192,12 +192,12 @@ class EventsQueue:
         self._logger = self._config.getLogger(self)
 
     def add_event(self, event):
-        heapq.heappush(self._heap, (event.timestamp,
+        heapq.heappush(self._heap, (event.time,
                                        self._get_priority(event.type),
-                                       self._counters[event.timestamp],
+                                       self._counters[event.time],
                                        event
                                        ))
-        self._counters[event.timestamp] = self._counters[event.timestamp] + 1
+        self._counters[event.time] = self._counters[event.time] + 1
 
     def next_event(self):
         event = None
@@ -208,14 +208,15 @@ class EventsQueue:
             event = heapq.heappop(self._heap)
 
         if event is not None:
+            event = event[-1]
             if event.type == EventType.SUBMIT:
                 self._add_submit_event()
-            if event.timestamp > self._last_timestamp:
+            if event.time > self._last_timestamp:
                 self._logger.debug('Timestamp %d is over, had %d events.',
                                       self._last_timestamp,
                                       self._counters[self._last_timestamp])
                 del self._counters[self._last_timestamp]
-                self._last_timestamp = event.timestamp
+                self._last_timestamp = event.time
 
         self._logger.debug('Event to process: %s', (event.dump() if event is not None
                                                                     else 'none'))
