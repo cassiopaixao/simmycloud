@@ -130,6 +130,9 @@ class FileSetReader:
         self._load_next_file()
 
     def next_line(self):
+        if self._opened_file is None:
+            return None
+
         self._line = self._opened_file.readline()
         if len(self._line) == 0:
             self._load_next_file()
@@ -178,7 +181,7 @@ class EventsQueue:
     def _get_priority(self, event_type):
         return EventsQueue._PRIORITY.index(event_type)
 
-    def _add_submit_event(self):
+    def _add_new_submit_event(self):
         new_event = self._submit_events.next_event()
         if new_event is not None:
             self.add_event(new_event)
@@ -202,7 +205,7 @@ class EventsQueue:
     def next_event(self):
         event = None
         if len(self._heap) == 0:
-            self._add_submit_event()
+            self._add_new_submit_event()
 
         if len(self._heap) > 0:
             event = heapq.heappop(self._heap)
@@ -210,7 +213,7 @@ class EventsQueue:
         if event is not None:
             event = event[-1]
             if event.type == EventType.SUBMIT:
-                self._add_submit_event()
+                self._add_new_submit_event()
             if event.time > self._last_timestamp:
                 self._logger.debug('Timestamp %d is over, had %d events.',
                                       self._last_timestamp,
@@ -218,6 +221,4 @@ class EventsQueue:
                 del self._counters[self._last_timestamp]
                 self._last_timestamp = event.time
 
-        self._logger.debug('Event to process: %s', (event.dump() if event is not None
-                                                                    else 'none'))
         return event

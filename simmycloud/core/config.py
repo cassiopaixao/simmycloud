@@ -9,6 +9,7 @@ from core.environment import Environment
 from core.statistics_manager import StatisticsManager
 from core.event import EventsQueue
 from core.vms_pool import PendingVMsPool
+from core.cloud_simulator import SimulationInfo
 
 class Config:
     def __init__(self):
@@ -19,6 +20,7 @@ class Config:
         self.statistics = None
         self.events_queue = EventsQueue()
         self.vms_pool = PendingVMsPool()
+        self.simulation_info = SimulationInfo()
         self.params = dict()
 
     def initialize(self):

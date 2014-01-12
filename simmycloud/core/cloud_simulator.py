@@ -16,6 +16,7 @@ class CloudSimulator:
             event = self._config.events_queue.next_event()
             if event is None:
                 break
+            self._logger.debug('Processing event: %s', event.dump())
             self._process_event(event)
         stats.finish()
 
@@ -25,9 +26,11 @@ class CloudSimulator:
 
     def _process_event(self, event):
         strategies = self._config.strategies
+        self._config.simulation_info.current_timestamp = int(event.time)
 
         if event.type == EventType.SUBMIT:
             self._config.statistics.notify_event('submit_events')
+            self._config.environment.add_vm(event.vm, event.process_time)
             strategies.scheduling.schedule_vm(event.vm)
 
         elif event.type == EventType.UPDATE:
@@ -44,8 +47,11 @@ class CloudSimulator:
                 pass
 
         elif event.type == EventType.FINISH:
-            self._config.statistics.notify_event('finish_events')
-            self._config.environment.free_vm_resources(event.vm)
+            if self._config.environment.is_it_time_to_finish_vm(event.vm):
+                self._config.statistics.notify_event('finish_events')
+                self._config.environment.free_vm_resources(event.vm)
+            else:
+                self._config.statistics.notify_event('outdated_finish_events')
 
         elif event.type == EventType.NOTIFY:
             # TODO implement this case.
@@ -54,3 +60,8 @@ class CloudSimulator:
         else:
             self._logger.error('Unknown event: %s'.format(event.dump()))
             raise Exception('Unknown event: %s'.format(event.dump()))
+
+
+class SimulationInfo:
+    def __init__(self):
+        self.current_timestamp = 0

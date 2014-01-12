@@ -11,6 +11,7 @@ class StandardStatistics(StatisticsManagerBuilder):
         statistics_manager.add_field(CounterField('submit_events'))
         statistics_manager.add_field(CounterField('update_events'))
         statistics_manager.add_field(CounterField('finish_events'))
+        statistics_manager.add_field(CounterField('outdated_finish_events'))
         statistics_manager.add_field(OnlineServersField('online_servers'))
         statistics_manager.add_field(OverloadedServersField('overloaded_servers'))
         statistics_manager.add_field(CounterField('servers_turned_on'))
