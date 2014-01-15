@@ -61,28 +61,31 @@ class Environment:
         self._offline_servers[server_name] = server
 
     def schedule_vm_at_server(self, vm, server_name):
-        self._logger.debug('Allocating VM {} to server {}'.format(vm.dump(), server_name))
-        self._online_servers[server_name].schedule_vm(vm)
-        self._vm_hosts[vm.name] = server_name
-        self._add_finish_event(vm)
+        self._vm_status[vm.name].update(vm)
+        vm_to_schedule = self._vm_status[vm.name].vm
+        self._logger.debug('Allocating VM %s to server %s', vm_to_schedule.dump(), server_name)
+        self._online_servers[server_name].schedule_vm(vm_to_schedule)
+        self._vm_hosts[vm_to_schedule.name] = server_name
+        self._add_finish_event(vm_to_schedule)
 
     def update_vm_demands(self, vm):
         server = self.get_server_of_vm(vm.name)
         if server is not None:
-            self._logger.debug('Updating VM demands: {}'.format(vm.dump()))
+            self._logger.debug('Updating VM demands in server %s: %s', server.describe(), vm.dump())
             server.update_vm(vm)
         else:
-            self._logger.info('Tried to update VM but not found: {}'.format(vm.dump()))
+            self._logger.debug('Updating VM demands in pending pool: %s', vm.dump())
+            self._vm_status[vm.name].update(vm)
 
     def free_vm_resources(self, vm):
         server = self.get_server_of_vm(vm.name)
         if server is not None:
             self._logger.debug('Freeing VM resources from server {}: {}'.format(server.describe(), vm.dump()))
-            self._vm_hosts.pop(vm.name)
+            del self._vm_hosts[vm.name]
             self._update_vm_status_freeing_resources(vm)
             server.free_vm(vm)
         else:
-            self._logger.info('Tried to free VM but not found: {}'.format(vm.dump()))
+            self._logger.error('Tried to free VM but not found: {}'.format(vm.dump()))
 
     def get_server_of_vm(self, vm_name):
         server_name = self._vm_hosts.get(vm_name)
@@ -90,7 +93,7 @@ class Environment:
                                                  else None
 
     def add_vm(self, vm, process_time):
-        self._vm_status[vm.name] = _VirtualMachineStatus(vm.name,
+        self._vm_status[vm.name] = _VirtualMachineStatus(vm,
                                                          self._current_timestamp(),
                                                          process_time)
 
@@ -115,9 +118,13 @@ class EnvironmentBuilder:
 
 
 class _VirtualMachineStatus:
-    def __init__(self, vm_name='', submit_time=0, process_time=0):
-        self.vm_name = vm_name
+    def __init__(self, vm, submit_time=0, process_time=0):
+        self.vm = vm
         self.submit_time = submit_time
         self.process_time = process_time
         self.remaining_time = process_time
         self.last_finish_time = None
+
+    def update(self, vm_with_new_demands):
+        self.vm.cpu = vm_with_new_demands.cpu
+        self.vm.mem = vm_with_new_demands.mem

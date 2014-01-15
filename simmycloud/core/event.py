@@ -13,29 +13,32 @@ class EventType:
     UPDATE = 2
     FINISH = 3
     NOTIFY = 4
+    UPDATES_FINISHED = 5
 
     @staticmethod
     def get_type(type_number):
-        if type_number in range(1,5):
-            types = ['', 'SUBMIT', 'UPDATE', 'FINISH', 'NOTIFY']
+        if type_number in range(1,6):
+            types = ['', 'SUBMIT', 'UPDATE', 'FINISH', 'NOTIFY', 'UPDATES_FINISHED']
             return types[type_number]
         return 'UNKNOWN'
 
 
 class Event:
 
-    def __init__(self, event_type, time=0, vm_name='', cpu=0.0, mem=0.0, process_time=0):
+    def __init__(self, event_type, time=0, vm_name='', cpu=0.0, mem=0.0, process_time=0, message=''):
         self.type = event_type
         self.time = time
         self.process_time = process_time
         self.vm = VirtualMachine(vm_name, cpu, mem)
+        self.message = message
 
     def dump(self):
-        return '{}, {}, [[{}], {}]'.format(EventType.get_type(self.type),
-                                           self.time,
-                                           self.vm.dump(),
-                                           self.process_time
-                                           )
+        return '{}, {}, [[{}], {} | {}]'.format(EventType.get_type(self.type),
+                                                self.time,
+                                                self.vm.dump(),
+                                                self.process_time,
+                                                self.message
+                                                )
 
 
 class EventBuilder:
@@ -47,32 +50,42 @@ class EventBuilder:
 
         # timestamp,vm_name,cpu,mem,process_time
         data = csv_line.split(',')
-        event = Event(EventType.SUBMIT,
-                      int(data[0] if data[0] else 0),
-                      data[1],
-                      float(data[2] if data[2] else 0),
-                      float(data[3] if data[3] else 0),
-                      int(data[4] if data[4] else 0)
+        return Event(EventType.SUBMIT,
+                     time=int(data[0] if data[0] else 0),
+                     vm_name=data[1],
+                     cpu=float(data[2] if data[2] else 0),
+                     mem=float(data[3] if data[3] else 0),
+                     process_time=int(data[4] if data[4] else 0)
             )
-        return event
 
     @staticmethod
     def build_update_event(timestamp, vm_name, cpu, mem):
-        event = Event(EventType.UPDATE,
-                      timestamp,
-                      vm_name,
-                      float(cpu),
-                      float(mem)
+        return Event(EventType.UPDATE,
+                     time=timestamp,
+                     vm_name=vm_name,
+                     cpu=float(cpu),
+                     mem=float(mem)
             )
-        return event
 
     @staticmethod
     def build_finish_event(timestamp, vm_name):
-        event = Event(EventType.FINISH,
-                      timestamp,
-                      vm_name
+        return Event(EventType.FINISH,
+                     time=timestamp,
+                     vm_name=vm_name
             )
-        return event
+
+    @staticmethod
+    def build_notify_event(timestamp, message):
+        return Event(EventType.NOTIFY,
+                     time=timestamp,
+                     message=message
+            )
+
+    @staticmethod
+    def build_updates_finished_event(timestamp):
+        return Event(EventType.UPDATES_FINISHED,
+                     time=timestamp
+            )
 
 
 class SubmitEventsQueue:
@@ -175,6 +188,7 @@ class EventsQueue:
     _PRIORITY = [EventType.NOTIFY,
                     EventType.FINISH,
                     EventType.UPDATE,
+                    EventType.UPDATES_FINISHED,
                     EventType.SUBMIT,
                     EventType.UNKNOWN
                     ]
@@ -216,8 +230,8 @@ class EventsQueue:
                 self._add_new_submit_event()
             if event.time > self._last_timestamp:
                 self._logger.debug('Timestamp %d is over, had %d events.',
-                                      self._last_timestamp,
-                                      self._counters[self._last_timestamp])
+                                   self._last_timestamp,
+                                   self._counters[self._last_timestamp])
                 del self._counters[self._last_timestamp]
                 self._last_timestamp = event.time
 

@@ -3,9 +3,9 @@ from core.strategies import MigrationStrategy
 
 class FakeMigration(MigrationStrategy):
 
-    @MigrationStrategy.migrate_from_server_if_necessary_strategy
-    def migrate_from_server_if_necessary(self, server):
-        pass
+    @MigrationStrategy.list_of_vms_to_migrate_strategy
+    def list_of_vms_to_migrate(self, list_of_online_servers):
+        return []
 
     @MigrationStrategy.migrate_vm_strategy
     def migrate_vm(self, vm):

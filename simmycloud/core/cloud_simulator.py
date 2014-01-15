@@ -26,6 +26,7 @@ class CloudSimulator:
 
     def _process_event(self, event):
         strategies = self._config.strategies
+        self._config.simulation_info.current_event = event
         self._config.simulation_info.current_timestamp = int(event.time)
 
         if event.type == EventType.SUBMIT:
@@ -36,15 +37,13 @@ class CloudSimulator:
         elif event.type == EventType.UPDATE:
             self._config.statistics.notify_event('update_events')
             self._config.environment.update_vm_demands(event.vm)
-            server = self._config.environment.get_server_of_vm(event.vm.name)
-            if server is not None:
-                # vm is allocated
-                strategies.migration.migrate_from_server_if_necessary(server)
-            else:
-                # vm is in vms_pool
-                # TODO verify if update_vm_demands updates even if vm
-                # is not allocated
-                pass
+
+        elif event.type == EventType.UPDATES_FINISHED:
+            should_migrate = strategies.migration.list_of_vms_to_migrate(
+                self._config.environment.online_servers())
+            for vm in should_migrate:
+                self._config.environment.free_vm_resources()
+            strategies.migration.migrate_all(should_migrate)
 
         elif event.type == EventType.FINISH:
             if self._config.environment.is_it_time_to_finish_vm(event.vm):
@@ -65,3 +64,4 @@ class CloudSimulator:
 class SimulationInfo:
     def __init__(self):
         self.current_timestamp = 0
+        self.current_event = None
