@@ -14,11 +14,17 @@ class EventType:
     FINISH = 3
     NOTIFY = 4
     UPDATES_FINISHED = 5
+    TIME_TO_PREDICT = 6
 
     @staticmethod
     def get_type(type_number):
-        if type_number in range(1,6):
-            types = ['', 'SUBMIT', 'UPDATE', 'FINISH', 'NOTIFY', 'UPDATES_FINISHED']
+        if type_number in range(1,7):
+            types = ['', 'SUBMIT',
+                         'UPDATE',
+                         'FINISH',
+                         'NOTIFY',
+                         'UPDATES_FINISHED',
+                         'TIME_TO_PREDICT']
             return types[type_number]
         return 'UNKNOWN'
 
@@ -84,6 +90,12 @@ class EventBuilder:
     @staticmethod
     def build_updates_finished_event(timestamp):
         return Event(EventType.UPDATES_FINISHED,
+                     time=timestamp
+            )
+
+    @staticmethod
+    def build_time_to_predict_event(timestamp):
+        return Event(EventType.TIME_TO_PREDICT,
                      time=timestamp
             )
 
@@ -186,6 +198,7 @@ class EventsQueue:
 
     # TODO: too much dependent of simulation rules to be hard coded
     _PRIORITY = [EventType.NOTIFY,
+                    EventType.TIME_TO_PREDICT,
                     EventType.FINISH,
                     EventType.UPDATE,
                     EventType.UPDATES_FINISHED,
@@ -207,6 +220,7 @@ class EventsQueue:
     def initialize(self):
         self._submit_events.initialize()
         self._logger = self._config.getLogger(self)
+        self._add_new_submit_event()
 
     def add_event(self, event):
         heapq.heappush(self._heap, (event.time,
@@ -218,8 +232,6 @@ class EventsQueue:
 
     def next_event(self):
         event = None
-        if len(self._heap) == 0:
-            self._add_new_submit_event()
 
         if len(self._heap) > 0:
             event = heapq.heappop(self._heap)

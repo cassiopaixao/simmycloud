@@ -1,7 +1,7 @@
 
 from core.vms_pool import PendingVMsPool
 from core.virtual_machine import VirtualMachine
-from core.event import EventType
+from core.event import EventType, EventBuilder
 
 class Strategy:
     def set_config(self, config):
@@ -99,16 +99,26 @@ class PredictionStrategy(Strategy):
         def new_predict(self, *args, **kwargs):
             new_demands = func(self, *args, **kwargs)
             if new_demands is not None:
-                self._config.environment.update_vm_demands(new_demands)
-                self._config.statistics.notify_event('vms_updated')
+                self._config.statistics.notify_event('new_demands')
             return new_demands
         return new_predict
+
+    def next_prediction_interval_strategy(func):
+        def new_next_prediction_interval(self, *args, **kwargs):
+            return func(self, *args, **kwargs)
+        return new_next_prediction_interval
 
     """ Returns a new VirtualMachine with the predicted demand.
         Or None if no change should be made. """
     @predict_strategy
     def predict(self, vm):
         raise NotImplementedError
+
+    """ Returns the next prediction interval. If you don't override this
+        method, the 'prediction_interval' parameter in config will be returned. """
+    @next_prediction_interval_strategy
+    def next_prediction_interval(self):
+        return int(self._config.params['prediction_interval'])
 
 
 class PoweringOffStrategy(Strategy):

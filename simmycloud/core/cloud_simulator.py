@@ -1,5 +1,5 @@
 
-from core.event import EventType
+from core.event import EventType, EventBuilder
 
 class CloudSimulator:
 
@@ -23,16 +23,29 @@ class CloudSimulator:
     def _initialize(self):
         self._config.initialize()
         self._logger = self._config.getLogger(self)
+        self._add_prediction_time(int(self._config.params['first_prediction_time']))
 
     def _process_event(self, event):
         strategies = self._config.strategies
-        self._config.simulation_info.current_event = event
-        self._config.simulation_info.current_timestamp = int(event.time)
+        self._update_simulation_info(event)
 
         if event.type == EventType.SUBMIT:
             self._config.statistics.notify_event('submit_events')
             self._config.environment.add_vm(event.vm, event.process_time)
             strategies.scheduling.schedule_vm(event.vm)
+
+        elif event.type == EventType.TIME_TO_PREDICT:
+            for server in self._config.environment.online_servers():
+                for vm in server.vm_list():
+                    prediction = strategies.prediction.predict(vm)
+                    if prediction is not None:
+                        self._config.events_queue.add_event(
+                            EventBuilder.build_update_event(self._config.simulation_info.current_timestamp,
+                                                            vm.name,
+                                                            prediction.cpu,
+                                                            prediction.mem))
+            self._add_prediction_time(
+                self._config.simulation_info.current_timestamp + strategies.prediction.next_prediction_interval())
 
         elif event.type == EventType.UPDATE:
             self._config.statistics.notify_event('update_events')
@@ -60,8 +73,24 @@ class CloudSimulator:
             self._logger.error('Unknown event: %s'.format(event.dump()))
             raise Exception('Unknown event: %s'.format(event.dump()))
 
+    def _add_prediction_time(self, timestamp):
+        # TODO find a smarter way to identify finish of simulation
+        if self._config.simulation_info.last_event is not None and \
+            self._config.simulation_info.last_event.type == EventType.TIME_TO_PREDICT and  \
+            len(self._config.environment.online_vms_names()) == 0:
+            return
+
+        self._config.events_queue.add_event(
+            EventBuilder.build_time_to_predict_event(timestamp))
+
+    def _update_simulation_info(self, event):
+        self._config.simulation_info.last_event = self._config.simulation_info.current_event
+        self._config.simulation_info.current_event = event
+        self._config.simulation_info.current_timestamp = int(event.time)
+
 
 class SimulationInfo:
     def __init__(self):
         self.current_timestamp = 0
         self.current_event = None
+        self.last_event = None

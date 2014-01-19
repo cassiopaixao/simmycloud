@@ -109,6 +109,9 @@ class Environment:
     def all_servers(self):
         return self._online_servers.values() + self._online_servers.values()
 
+    def online_vms_names(self):
+        return self._vm_hosts.keys()
+
 
 class EnvironmentBuilder:
 
