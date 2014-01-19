@@ -42,7 +42,7 @@ class CloudSimulator:
             should_migrate = strategies.migration.list_of_vms_to_migrate(
                 self._config.environment.online_servers())
             for vm in should_migrate:
-                self._config.environment.free_vm_resources()
+                self._config.environment.free_vm_resources(vm)
             strategies.migration.migrate_all(should_migrate)
 
         elif event.type == EventType.FINISH:
