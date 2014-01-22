@@ -95,7 +95,10 @@ class ConfigBuilder:
             config.strategies.migration = cls._get_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_object(section['powering_off_strategy'])
             config.environment = Environment(cls._get_object(section['environment_builder']))
-            config.statistics = StatisticsManager(cls._get_object(section['statistics_manager']))
+            config.statistics = StatisticsManager()
+            statistics_modules = [value for (key, value) in section.items() if key == 'statistics_modules']
+            for module in statistics_modules:
+                config.statistics.add_module(cls._get_object(module))
 
             config.params = dict(section)
 

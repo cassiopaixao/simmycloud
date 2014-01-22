@@ -10,15 +10,14 @@ class CloudSimulator:
 
     def simulate(self):
         self._initialize()
-        stats = self._config.statistics
-        stats.start()
         while True:
             event = self._config.events_queue.next_event()
             if event is None:
+                self._config.statistics.notify_event('simulation_finished',
+                                                     timestamp=self._config.simulation_info.current_timestamp)
                 break
             self._logger.debug('Processing event: %s', event.dump())
             self._process_event(event)
-        stats.finish()
 
     def _initialize(self):
         self._config.initialize()
@@ -87,6 +86,15 @@ class CloudSimulator:
         self._config.simulation_info.last_event = self._config.simulation_info.current_event
         self._config.simulation_info.current_event = event
         self._config.simulation_info.current_timestamp = int(event.time)
+        self._notify_if_timestamp_changed()
+
+    def _notify_if_timestamp_changed(self):
+        if self._config.simulation_info.last_event is not None and \
+           self._config.simulation_info.current_timestamp > self._config.simulation_info.last_event.time:
+            self._config.statistics.notify_event('timestamp_ended',
+                                                 timestamp=self._config.simulation_info.last_event.time)
+            self._config.statistics.notify_event('timestamp_starting',
+                                                 timestamp=self._config.simulation_info.current_timestamp)
 
 
 class SimulationInfo:
