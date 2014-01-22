@@ -1,7 +1,7 @@
 
 from core.vms_pool import PendingVMsPool
 from core.virtual_machine import VirtualMachine
-from core.event import EventType, EventBuilder
+from core.event import EventType
 
 class Strategy:
     def set_config(self, config):
