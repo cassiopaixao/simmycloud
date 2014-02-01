@@ -39,3 +39,16 @@ class ServersTotalResidualCapacityField(StatisticsField):
         online_servers = self._config.environment.online_servers()
         return math.fsum([residual_capacity(server) for server in online_servers])
 
+
+class ServerResidualCapacityPercentageField(StatisticsField):
+    def set_server(self, server):
+        self.server = server
+        self._server_capacity_magnitude = self._mag(server.cpu, server.mem)
+
+    def value(self):
+        return self._mag(self.server.cpu - self.server.cpu_alloc,
+                         self.server.mem - self.server.mem_alloc) / self._server_capacity_magnitude
+
+    def _mag(self, x, y):
+        return math.sqrt(math.pow(x, 2) + math.pow(y, 2))
+

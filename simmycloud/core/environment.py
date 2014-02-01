@@ -107,7 +107,7 @@ class Environment:
         return self._offline_servers.values()
 
     def all_servers(self):
-        return self._online_servers.values() + self._online_servers.values()
+        return list(self._online_servers.values()) + list(self._offline_servers.values())
 
     def online_vms_names(self):
         return self._vm_hosts.keys()

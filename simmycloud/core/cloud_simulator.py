@@ -23,6 +23,7 @@ class CloudSimulator:
         self._config.initialize()
         self._logger = self._config.getLogger(self)
         self._add_prediction_time(int(self._config.params['first_prediction_time']))
+        self._add_simulation_started_event()
 
     def _process_event(self, event):
         strategies = self._config.strategies
@@ -65,8 +66,7 @@ class CloudSimulator:
                 self._config.statistics.notify_event('outdated_finish_events')
 
         elif event.type == EventType.NOTIFY:
-            # TODO implement this case.
-            pass
+            self._config.statistics.notify_event(event.message)
 
         else:
             self._logger.error('Unknown event: %s'.format(event.dump()))
@@ -81,6 +81,10 @@ class CloudSimulator:
 
         self._config.events_queue.add_event(
             EventBuilder.build_time_to_predict_event(timestamp))
+
+    def _add_simulation_started_event(self):
+        self._config.events_queue.add_event(
+            EventBuilder.build_notify_event(0, 'simulation_started'))
 
     def _update_simulation_info(self, event):
         self._config.simulation_info.last_event = self._config.simulation_info.current_event
