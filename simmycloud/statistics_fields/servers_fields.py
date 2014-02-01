@@ -32,9 +32,10 @@ class VMsInPoolField(StatisticsField):
         return len(self._config.vms_pool.get_ordered_list())
 
 
-class ServersResidualCapacity(StatisticsField):
+class ServersTotalResidualCapacityField(StatisticsField):
     def value(self):
         def residual_capacity(s):
             return math.sqrt(math.pow(s.cpu - s.cpu_alloc, 2) + math.pow(s.mem - s.mem_alloc, 2))
         online_servers = self._config.environment.online_servers()
         return math.fsum([residual_capacity(server) for server in online_servers])
+

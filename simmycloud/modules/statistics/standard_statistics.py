@@ -3,7 +3,7 @@ from collections import defaultdict
 from core.statistics_manager import StatisticsModule
 
 from statistics_fields.base_fields import CounterField, EnvironmentField, PredictionStrategyField, MigrationStrategyField, PoweringOffStrategyField, SchedulingStrategyField, TimeIntervalSinceLastStatisticsField
-from statistics_fields.servers_fields import OnlineServersField, OverloadedServersField, TightedVMsField, VMsInPoolField, ServersResidualCapacity
+from statistics_fields.servers_fields import OnlineServersField, OverloadedServersField, TightedVMsField, VMsInPoolField, ServersTotalResidualCapacityField
 
 class StandardStatistics(StatisticsModule):
     CSV_SEPARATOR = ','
@@ -90,7 +90,7 @@ class StandardStatistics(StatisticsModule):
         self._add_field(OverloadedServersField('overloaded_servers'))
         self._add_field(CounterField('vms_migrated'))
         self._add_field(VMsInPoolField('vms_in_pool'))
-        self._add_field(ServersResidualCapacity('online_residual_capacity'))
+        self._add_field(ServersTotalResidualCapacityField('online_residual_capacity'))
         self._add_field(CounterField('submit_events'))
         self._add_field(CounterField('update_events'))
         self._add_field(CounterField('finish_events'))
