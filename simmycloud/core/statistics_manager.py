@@ -25,6 +25,7 @@ class StatisticsManager:
         self._logger.info('StatisticsManager initialized.')
 
     def notify_event(self, event, *args, **kwargs):
+        self._logger.debug('Notified event: %s', event)
         for listener in self._listeners[event]:
             listener.notify_event(event, *args, **kwargs)
 

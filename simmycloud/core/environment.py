@@ -73,9 +73,8 @@ class Environment:
         if server is not None:
             self._logger.debug('Updating VM demands in server %s: %s', server.describe(), vm.dump())
             server.update_vm(vm)
-        else:
-            self._logger.debug('Updating VM demands in pending pool: %s', vm.dump())
-            self._vm_status[vm.name].update(vm)
+        self._logger.debug('Updating VM demands in pending pool: %s', vm.dump())
+        self._vm_status[vm.name].update(vm)
 
     def free_vm_resources(self, vm):
         server = self.get_server_of_vm(vm.name)
@@ -93,9 +92,9 @@ class Environment:
                                                  else None
 
     def add_vm(self, vm, process_time):
-        self._vm_status[vm.name] = _VirtualMachineStatus(vm,
-                                                         self._current_timestamp(),
-                                                         process_time)
+        self._vm_status[vm.name] = VirtualMachineAllocationData(vm,
+                                                                self._current_timestamp(),
+                                                                process_time)
 
     def is_it_time_to_finish_vm(self, vm):
         return self._current_timestamp() == self._vm_status[vm.name].last_finish_time
@@ -112,6 +111,9 @@ class Environment:
     def online_vms_names(self):
         return self._vm_hosts.keys()
 
+    def get_vm_allocation_data(self, vm_name):
+        return self._vm_status[vm_name]
+
 
 class EnvironmentBuilder:
 
@@ -120,7 +122,7 @@ class EnvironmentBuilder:
         raise NotImplementedError
 
 
-class _VirtualMachineStatus:
+class VirtualMachineAllocationData:
     def __init__(self, vm, submit_time=0, process_time=0):
         self.vm = vm
         self.submit_time = submit_time

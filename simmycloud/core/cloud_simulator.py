@@ -62,6 +62,8 @@ class CloudSimulator:
             if self._config.environment.is_it_time_to_finish_vm(event.vm):
                 self._config.statistics.notify_event('finish_events')
                 self._config.environment.free_vm_resources(event.vm)
+                self._config.statistics.notify_event('vm_finished',
+                                                     vm= event.vm)
             else:
                 self._config.statistics.notify_event('outdated_finish_events')
 
