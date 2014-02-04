@@ -57,6 +57,7 @@ class CloudSimulator:
             for vm in should_migrate:
                 self._config.environment.free_vm_resources(vm)
             strategies.migration.migrate_all(should_migrate)
+            self._try_to_allocate_vms_in_pool()
 
         elif event.type == EventType.FINISH:
             if self._config.environment.is_it_time_to_finish_vm(event.vm):
@@ -101,6 +102,12 @@ class CloudSimulator:
                                                  timestamp=self._config.simulation_info.last_event.time)
             self._config.statistics.notify_event('timestamp_starting',
                                                  timestamp=self._config.simulation_info.current_timestamp)
+
+    def _try_to_allocate_vms_in_pool(self):
+        for vm in self._config.vms_pool.get_ordered_list():
+            server = self._config.strategies.scheduling.schedule_vm(vm)
+            if server != None:
+                self._config.vms_pool.remove(vm)
 
 
 class SimulationInfo:
