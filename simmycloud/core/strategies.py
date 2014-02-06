@@ -6,11 +6,12 @@ from core.event import EventType
 class Strategy:
     def set_config(self, config):
         self._config = config
+        self._logger = self._config.getLogger(self)
 
     """ This method will be called before the simulation starts.
         Override this method if you want to configure something in your
         strategy.
-        The self._config object will already be available. """
+        The self._config and self._logger objects will already be available. """
     def initialize(self):
         pass
 
