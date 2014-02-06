@@ -10,6 +10,8 @@ logging.basicConfig(level=logging.INFO)
 SCHEDULE_EVENT = '0'
 FINISH_EVENT = '1'
 
+LAST_TIMESTAMP = None
+
 class Downloader:
     def __init__(self, resource_name, gsutil_path, first_file=0, last_file=499):
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -167,6 +169,8 @@ class TaskEventsPreFilterer:
         self._output = FiltererOutput(output_directory)
 
     def filter(self):
+        global LAST_TIMESTAMP
+
         self._fileset.initialize()
 
         line = self._fileset.next_line()
@@ -183,6 +187,8 @@ class TaskEventsPreFilterer:
             event_type = data[5]
             resource_request_cpu = data[9]
             resource_request_mem = data[10]
+
+            LAST_TIMESTAMP = timestamp
 
             if event_type in ['1','2','3','4','5','6'] and missing_info == '':
                 #timestamp,event_type,vm_name,cpu,mem
@@ -232,6 +238,8 @@ class TaskEventsFilterer:
     def filter(self):
         self._process_events()
 
+        self._logger.info('last_timestamp: %d', int(LAST_TIMESTAMP))
+
         vms_tup = list()
         for vm_name in self._vm_events.keys():
             schedule_timestamp = None
@@ -252,9 +260,6 @@ class TaskEventsFilterer:
 
             self._logger.debug('VM %s has %d events.', vm_name, len(events))
 
-            if len(events) == 1:
-                continue
-
             schedule_event = None
             finish_event = None
             for e in events:
@@ -263,18 +268,23 @@ class TaskEventsFilterer:
                 elif e.event_type == FINISH_EVENT and finish_event is None:
                     finish_event = e
 
-            if schedule_event is None or finish_event is None:
-                self._logger.info('VM %s doesn\'t have a schedule or finish event.', vm_name)
+            if schedule_event is None:
+                self._logger.info('VM %s doesn\'t have a schedule event.', vm_name)
                 for e in events:
                     self._logger.debug('%s\'s event: ts: %s, ev_ty: %s', vm_name, e.timestamp, e.event_type)
                 continue
+
+            if finish_event is not None:
+                finish_timestamp = int(finish_event.timestamp)
+            else:
+                finish_timestamp = int(LAST_TIMESTAMP)
 
             new_event = '{timestamp},{vm_name},{cpu},{mem},{process_time}'.strip().format(
                         timestamp= schedule_event.timestamp,
                         vm_name = vm_name,
                         cpu = float(schedule_event.cpu),
                         mem = float(schedule_event.mem),
-                        process_time = (int(finish_event.timestamp) - int(schedule_event.timestamp))
+                        process_time = (finish_timestamp - int(schedule_event.timestamp))
                     )
             self._output.print_line(new_event)
         self._output.close()
