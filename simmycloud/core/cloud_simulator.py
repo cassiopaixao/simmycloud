@@ -16,6 +16,7 @@ class CloudSimulator:
                 self._config.statistics.notify_event('simulation_finished',
                                                      timestamp=self._config.simulation_info.current_timestamp)
                 break
+            self._update_simulation_info(event)
             self._logger.debug('Processing event: %s', event.dump())
             self._process_event(event)
 
@@ -27,7 +28,6 @@ class CloudSimulator:
 
     def _process_event(self, event):
         strategies = self._config.strategies
-        self._update_simulation_info(event)
 
         if event.type == EventType.SUBMIT:
             self._config.statistics.notify_event('submit_events')
@@ -58,6 +58,7 @@ class CloudSimulator:
                 self._config.environment.free_vm_resources(vm)
             strategies.migration.migrate_all(should_migrate)
             self._try_to_allocate_vms_in_pool()
+            self._verify_machines_to_turn_off()
 
         elif event.type == EventType.FINISH:
             if self._config.environment.is_it_time_to_finish_vm(event.vm):
@@ -75,15 +76,22 @@ class CloudSimulator:
             self._logger.error('Unknown event: %s'.format(event.dump()))
             raise Exception('Unknown event: %s'.format(event.dump()))
 
-    def _add_prediction_time(self, timestamp):
-        # TODO find a smarter way to identify finish of simulation
-        if self._config.simulation_info.last_event is not None and \
-            self._config.simulation_info.last_event.type == EventType.TIME_TO_PREDICT and  \
-            len(self._config.environment.online_vms_names()) == 0:
-            return
+        if self._does_simulation_finished():
+            self._verify_machines_to_turn_off()
+            self._config.events_queue.clear()
 
+    def _does_simulation_finished(self):
+        if len(self._config.environment.online_vms_names()) == 0 and \
+            len(self._config.vms_pool) == 0 and \
+            not self._config.events_queue.has_submit_events():
+            return True
+        return False
+
+    def _add_prediction_time(self, timestamp):
         self._config.events_queue.add_event(
             EventBuilder.build_time_to_predict_event(timestamp))
+        self._config.events_queue.add_event(
+            EventBuilder.build_updates_finished_event(timestamp))
 
     def _add_simulation_started_event(self):
         self._config.events_queue.add_event(
@@ -108,6 +116,11 @@ class CloudSimulator:
             server = self._config.strategies.scheduling.schedule_vm(vm)
             if server != None:
                 self._config.vms_pool.remove(vm)
+
+    def _verify_machines_to_turn_off(self):
+        online_servers = list(self._config.environment.online_servers())
+        for i in range(len(online_servers)):
+            self._config.strategies.powering_off.power_off_if_necessary(online_servers[i])
 
 
 class SimulationInfo:

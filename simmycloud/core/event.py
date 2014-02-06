@@ -212,6 +212,8 @@ class EventsQueue:
         new_event = self._submit_events.next_event()
         if new_event is not None:
             self.add_event(new_event)
+        else:
+            self._has_submit_events = False
 
     def set_config(self, config):
         self._config = config
@@ -220,14 +222,21 @@ class EventsQueue:
     def initialize(self):
         self._submit_events.initialize()
         self._logger = self._config.getLogger(self)
+        self._has_submit_events = True
         self._add_new_submit_event()
+
+    def clear(self):
+        self._heap.clear()
+
+    def has_submit_events(self):
+        return self._has_submit_events
 
     def add_event(self, event):
         heapq.heappush(self._heap, (event.time,
-                                       self._get_priority(event.type),
-                                       self._counters[event.time],
-                                       event
-                                       ))
+                                    self._get_priority(event.type),
+                                    self._counters[event.time],
+                                    event
+                                    ))
         self._counters[event.time] = self._counters[event.time] + 1
 
     def next_event(self):

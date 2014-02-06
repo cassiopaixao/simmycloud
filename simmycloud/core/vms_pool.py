@@ -9,6 +9,9 @@ class PendingVMsPool:
     def __init__(self):
         self._clear()
 
+    def __len__(self):
+        return len(self._high_priority) + len(self._low_priority)
+
     def _clear(self):
         self._logger = None
         self._config = None
