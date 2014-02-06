@@ -126,6 +126,8 @@ class VirtualMachineAllocationData:
     def __init__(self, vm, submit_time=0, process_time=0):
         self.vm = vm
         self.submit_time = submit_time
+        self.submit_cpu_demand = vm.cpu
+        self.submit_mem_demand = vm.mem
         self.process_time = process_time
         self.remaining_time = process_time
         self.last_finish_time = None

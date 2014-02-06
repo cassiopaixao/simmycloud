@@ -22,6 +22,7 @@ class Config:
         self.vms_pool = PendingVMsPool()
         self.simulation_info = SimulationInfo()
         self.params = dict()
+        self.module = dict()
 
     def initialize(self):
         logger = logging.getLogger(self.identifier)
@@ -36,6 +37,7 @@ class Config:
         logger.setLevel(self.logging_level)
         logger.addHandler(handler)
         self._initialize_all()
+        self._initialize_modules()
 
     def _initialize_all(self):
         self.events_queue.set_config(self)
@@ -47,6 +49,11 @@ class Config:
         self.environment.initialize()
         self.statistics.initialize()
         self.strategies.initialize_all()
+
+    def _initialize_modules(self):
+        for module in self.module.values():
+            module.set_config(self)
+            module.initialize()
 
     def getLogger(self, obj):
         return logging.getLogger("{}.{}".format(self.identifier, obj.__class__.__name__))
@@ -95,10 +102,16 @@ class ConfigBuilder:
             config.strategies.migration = cls._get_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_object(section['powering_off_strategy'])
             config.environment = Environment(cls._get_object(section['environment_builder']))
+            # statistics
             config.statistics = StatisticsManager()
-            statistics_modules = [value.strip() for value in section['statistics_modules'].split(',')]
+            statistics_modules = [value.strip() for value in section['statistics_modules'].split(',') if value.strip()]
             for module in statistics_modules:
                 config.statistics.add_module(cls._get_object(module))
+            #modules
+            modules = [value.strip() for value in section['modules'].split(',') if value.strip()]
+            for module in modules:
+                module_name = module.split('.')[-1]
+                config.module[module_name] = cls._get_object(module)
 
             config.params = dict(section)
 
