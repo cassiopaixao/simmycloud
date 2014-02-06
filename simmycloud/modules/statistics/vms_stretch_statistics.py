@@ -1,7 +1,7 @@
 
 from core.statistics_manager import StatisticsModule
 
-from statistics_fields.vms_fields import VMNameField, VMStretchField
+from statistics_fields.vms_fields import VMNameField, VMStretchField, VMSubmitTimestampField, VMFinishTimestampField
 
 class VMsStretchStatistics(StatisticsModule):
     CSV_SEPARATOR = ','
@@ -46,3 +46,5 @@ class VMsStretchStatistics(StatisticsModule):
     def _build(self):
         self._fields.append(VMNameField('vm_name'))
         self._fields.append(VMStretchField('stretch'))
+        self._fields.append(VMSubmitTimestampField('submit_time'))
+        self._fields.append(VMFinishTimestampField('finish_time'))
