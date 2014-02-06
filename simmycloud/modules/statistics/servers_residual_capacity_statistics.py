@@ -62,3 +62,4 @@ class ServersResidualCapacityStatistics(StatisticsModule):
             server_field = ServerResidualCapacityPercentageField(server.describe())
             server_field.set_server(server)
             self._fields.append(server_field)
+        self._fields = sorted(self._fields, key=lambda fld: fld.label())
