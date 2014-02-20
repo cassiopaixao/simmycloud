@@ -181,7 +181,6 @@ class TaskEventsPreFilterer:
             # resource_request_disk_space,different-machine_constraint
             data = line.strip().split(',')
             timestamp = data[0]
-            missing_info = data[1]
             job_id = data[2]
             task_index = data[3]
             event_type = data[5]
@@ -190,7 +189,7 @@ class TaskEventsPreFilterer:
 
             LAST_TIMESTAMP = timestamp
 
-            if event_type in ['1','2','3','4','5','6'] and missing_info == '':
+            if event_type in ['1','2','3','4','5','6']:
                 #timestamp,event_type,vm_name,cpu,mem
                 new_event = '{timestamp},{event_type},{vm_name},{cpu},{mem}'.strip().format(
                         timestamp = timestamp,
