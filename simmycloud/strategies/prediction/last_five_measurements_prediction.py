@@ -12,7 +12,7 @@ class LastFiveMeasurementsPrediction(PredictionStrategy):
         last_five = self._get_last_five(vm)
         cpu_average = float(sum([m['cpu'] for m in last_five])) / len(last_five)
         mem_average = float(sum([m['mem'] for m in last_five])) / len(last_five)
-        new_demands = VirtualMachine()
+        new_demands = VirtualMachine('')
         new_demands.cpu = cpu_average
         new_demands.mem = mem_average
         return new_demands
