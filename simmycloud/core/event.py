@@ -3,7 +3,7 @@ import os
 import fileinput
 import re
 import heapq
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from core.virtual_machine import VirtualMachine
 
@@ -135,9 +135,9 @@ class FileSetReader:
         self._clear()
 
     def _clear(self):
-        self._opened_file = None
-        self._file_index = -1
+        self._files = deque()
         self._line = None
+        self._lines = deque()
         self._logger = None
 
     def set_config(self, config):
@@ -150,39 +150,40 @@ class FileSetReader:
         self._files[:] = [f for f in self._files if re.match('.*\.csv$', f) != None]
         self._files[:] = sorted(self._files)
         self._files[:] = [directory + '/' + f for f in self._files]
+        self._files = deque(self._files)
         self._logger = self._config.getLogger(self)
 
         self._load_next_file()
 
     def next_line(self):
-        if self._opened_file is None:
-            return None
-
-        self._line = self._opened_file.readline()
-        if len(self._line) == 0:
+        if len(self._lines) == 0:
             self._load_next_file()
-            if self._opened_file == None:
-                return None
-            self._line = self._opened_file.readline()
-        if self._line is not None:
-            self._line = self._line.strip()
-        # self._logger.debug('Line read: %s', self._line.strip())
+            self._line = None
+        if len(self._lines) > 0:
+            self._line = self._lines.popleft()
         return self._line
 
     def current_line(self):
         return self._line
 
     def _load_next_file(self):
-        if self._opened_file != None:
-            self._logger.info('Closing file: %s', self._opened_file._filename)
-            self._opened_file.close()
-        self._file_index += 1
-        if self._file_index < len(self._files):
-            self._logger.info('Opening file: %s', self._files[self._file_index])
-            self._opened_file = fileinput.input(self._files[self._file_index])
+        if len(self._files) > 0:
+            filename = self._files.popleft()
+            self._logger.info('Opening file: %s', filename)
+            opened_file = fileinput.input(filename)
+            self._get_all_lines(opened_file)
+            self._logger.info('Closing file: %s', filename)
+            opened_file.close()
+
         else:
             self._logger.info('No more files to open.')
-            self._opened_file = None
+
+    def _get_all_lines(self, opened_file):
+        line = opened_file.readline()
+        while len(line) > 0:
+            self._lines.append(line)
+            line = opened_file.readline()
+
 
 class EventsQueue:
     def __init__(self):
