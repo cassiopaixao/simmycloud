@@ -1,6 +1,7 @@
 
 import re
 import fileinput
+import os.path
 
 from core.simulation_module import SimulationModule
 
@@ -18,12 +19,16 @@ class MeasurementReader(SimulationModule):
     def measurements_till(self, vm_name, time_limit=None):
         path = re.sub('(\d+)-(\d+)', '\\1/\\1-\\2.csv', vm_name)
         filepath = '{}/{}'.format(self._directory, path)
-        opened_file = fileinput.input(filepath)
 
         measurements = []
         measurements.append({'cpu': self._config.environment.get_vm_allocation_data(vm_name).submit_cpu_demand,
                              'mem': self._config.environment.get_vm_allocation_data(vm_name).submit_mem_demand
                              })
+
+        if not os.path.isfile(filepath): #verifies if file exists
+            return measurements
+
+        opened_file = fileinput.input(filepath)
 
         line = opened_file.readline()
         while len(line) > 0:
