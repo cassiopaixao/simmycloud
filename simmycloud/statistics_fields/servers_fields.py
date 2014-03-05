@@ -18,7 +18,7 @@ class TightedVMsField(StatisticsField):
 
 class OverloadedServersField(StatisticsField):
     def value(self):
-        overloaded_servers = [s for s in self._config.environment.online_servers() if s.cpu_alloc > s.cpu and s.mem_alloc > s.mem]
+        overloaded_servers = self._config.module['MeasurementReader'].overloaded_servers()
         return len(overloaded_servers)
 
 
