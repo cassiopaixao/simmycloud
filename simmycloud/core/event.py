@@ -227,7 +227,7 @@ class EventsQueue:
         self._add_new_submit_event()
 
     def clear(self):
-        self._heap.clear()
+        self._heap = list()
 
     def has_submit_events(self):
         return self._has_submit_events
