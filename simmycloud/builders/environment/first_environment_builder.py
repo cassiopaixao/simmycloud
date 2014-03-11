@@ -1,7 +1,7 @@
 from core.environment import EnvironmentBuilder
 from core.server import Server
 
-class ThinEnvironmentBuilder(EnvironmentBuilder):
+class FirstEnvironmentBuilder(EnvironmentBuilder):
 
     @staticmethod
     def build(environment):
