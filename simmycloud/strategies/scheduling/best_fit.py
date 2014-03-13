@@ -23,14 +23,30 @@
 ###############################################################################
 
 
-from core.strategies import MigrationStrategy
+from core.strategies import SchedulingStrategy
 
-class FakeMigration(MigrationStrategy):
+class BestFit(SchedulingStrategy):
 
-    @MigrationStrategy.list_of_vms_to_migrate_strategy
-    def list_of_vms_to_migrate(self, list_of_online_servers):
-        return []
+    @SchedulingStrategy.schedule_vm_strategy
+    def schedule_vm(self, vm):
+        server = self.get_best_fit(vm,
+                                   self._config.environment.online_servers())
 
-    @MigrationStrategy.migrate_vm_strategy
-    def migrate_vm(self, vm):
-        pass
+        if server is None:
+            server = self.get_best_fit(vm,
+                                       self._config.environment.offline_servers())
+            if server is not None:
+                self._config.environment.turn_on_server(server.name)
+
+        if server is not None:
+            self._config.environment.schedule_vm_at_server(vm, server.name)
+
+        return server
+
+
+    def get_first_fit(self, vm, servers):
+        for server in servers:
+            if server.cpu - server.cpu_alloc >= vm.cpu and \
+               server.mem - server.mem_alloc >= vm.mem:
+                return server
+        return None
