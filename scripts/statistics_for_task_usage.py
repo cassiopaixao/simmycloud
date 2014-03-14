@@ -92,6 +92,8 @@ class TaskUsageStatistics:
     def run(self):
         self._fileset.initialize()
 
+        self._print_header()
+
         folder = self._fileset.next_folder()
 
         while folder is not None:
@@ -185,6 +187,30 @@ class TaskUsageStatistics:
                     std_dev_vec]])
 
         self._output.print_line(vm_stats)
+
+    def _print_header(self):
+        header = ','.join(['first_time',
+            'last_time',
+            'duration',
+            'job_id',
+            'vm_name',
+            'measurements',
+            'min_cpu',
+            'max_cpu',
+            'range_cpu',
+            'mean_cpu',
+            'std_dev_cpu',
+            'min_mem',
+            'max_mem',
+            'range_mem',
+            'mean_mem',
+            'std_dev_mem',
+            'min_vec',
+            'max_vec',
+            'range_vec',
+            'mean_vec',
+            'std_dev_vec'])
+        self._output.print_line(header)
 
     def _std_dev(self, resource, mean):
         res_index = {'cpu':0, 'mem':1, 'vec':2}[resource]
