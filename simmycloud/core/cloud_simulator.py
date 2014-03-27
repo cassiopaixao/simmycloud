@@ -90,6 +90,7 @@ class CloudSimulator:
                 self._config.environment.free_vm_resources(event.vm)
                 self._config.statistics.notify_event('vm_finished',
                                                      vm= event.vm)
+                self._verify_machines_to_turn_off()
             else:
                 self._config.statistics.notify_event('outdated_finish_events')
 
