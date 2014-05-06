@@ -42,7 +42,9 @@ class CloudSimulator:
                 break
             self._update_simulation_info(event)
             self._logger.debug('Processing event: %s', event.dump())
+            self._config.simulation_info.scope.append(event.type)
             self._process_event(event)
+            self._config.simulation_info.scope.pop()
 
     def _initialize(self):
         self._config.initialize()
@@ -76,11 +78,13 @@ class CloudSimulator:
             self._config.resource_manager.update_vm_demands(event.vm)
 
         elif event.type == EventType.UPDATES_FINISHED:
+            self._config.simulation_info.scope.append('migration')
             should_migrate = strategies.migration.list_of_vms_to_migrate(
                 self._config.resource_manager.online_servers())
             for vm in should_migrate:
                 self._config.resource_manager.free_vm_resources(vm)
             strategies.migration.migrate_all(should_migrate)
+            self._config.simulation_info.scope.pop()
             self._try_to_allocate_vms_in_pool()
             self._verify_machines_to_turn_off()
 
@@ -125,7 +129,6 @@ class CloudSimulator:
     def _update_simulation_info(self, event):
         self._config.simulation_info.last_event_timestamp = self._config.simulation_info.current_timestamp
         self._config.simulation_info.current_timestamp = int(event.time)
-        self._config.simulation_info.scope = event.type
         self._notify_if_timestamp_changed()
 
     def _notify_if_timestamp_changed(self):
@@ -152,4 +155,4 @@ class SimulationInfo:
     def __init__(self):
         self.current_timestamp = 0
         self.last_event_timestamp = -1
-        self.scope = None
+        self.scope = []

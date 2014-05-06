@@ -51,7 +51,7 @@ class SchedulingStrategy(Strategy):
                                                    vm.name, server.name)
             elif vm not in self._config.vms_pool.get_ordered_list():
                 # note that this method can be called during migration
-                if self._config.simulation_info.scope != EventType.UPDATES_FINISHED:
+                if 'migration' not in self._config.simulation_info.scope:
                     self._config.vms_pool.add_vm(vm, PendingVMsPool.LOW_PRIORITY)
                     self._config.statistics.notify_event('vms_added_to_pending')
                     self._config.getLogger(self).debug('VM %s was added to pending', vm.name)
