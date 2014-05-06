@@ -42,7 +42,7 @@
 #define VER_FIRST_LINE 0x80
 
 /* Uncomment the variable to get rid of the initial Version message */
-/*#define OMIT_WHAT_I_DO*/
+#define OMIT_WHAT_I_DO
 
 #define sqr(x) ((x)*(x))
 
