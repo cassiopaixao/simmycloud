@@ -123,16 +123,16 @@ class CloudSimulator:
             EventBuilder.build_notify_event(0, 'simulation_started'))
 
     def _update_simulation_info(self, event):
-        self._config.simulation_info.last_event = self._config.simulation_info.current_event
-        self._config.simulation_info.current_event = event
+        self._config.simulation_info.last_event_timestamp = self._config.simulation_info.current_timestamp
         self._config.simulation_info.current_timestamp = int(event.time)
+        self._config.simulation_info.scope = event.type
         self._notify_if_timestamp_changed()
 
     def _notify_if_timestamp_changed(self):
-        if self._config.simulation_info.last_event is not None and \
-           self._config.simulation_info.current_timestamp > self._config.simulation_info.last_event.time:
+        if self._config.simulation_info.last_event_timestamp > -1 and \
+           self._config.simulation_info.current_timestamp > self._config.simulation_info.last_event_timestamp:
             self._config.statistics.notify_event('timestamp_ended',
-                                                 timestamp=self._config.simulation_info.last_event.time)
+                                                 timestamp=self._config.simulation_info.last_event_timestamp)
             self._config.statistics.notify_event('timestamp_starting',
                                                  timestamp=self._config.simulation_info.current_timestamp)
 
@@ -151,5 +151,5 @@ class CloudSimulator:
 class SimulationInfo:
     def __init__(self):
         self.current_timestamp = 0
-        self.current_event = None
-        self.last_event = None
+        self.last_event_timestamp = -1
+        self.scope = None
