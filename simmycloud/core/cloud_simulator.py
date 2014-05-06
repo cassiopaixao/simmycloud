@@ -35,15 +35,18 @@ class CloudSimulator:
     def simulate(self):
         self._initialize()
         while True:
-            event = self._config.events_queue.next_event()
-            if event is None:
+            events = self._config.events_queue.next_events()
+            if events is None:
                 self._config.statistics.notify_event('simulation_finished',
                                                      timestamp=self._config.simulation_info.current_timestamp)
                 break
-            self._update_simulation_info(event)
-            self._logger.debug('Processing event: %s', event.dump())
-            self._config.simulation_info.scope.append(event.type)
-            self._process_event(event)
+            self._update_simulation_info(events[0])
+            self._logger.debug('Processing %d events of type: %s', len(events), EventType.get_type(events[0].type))
+            for event in events:
+                self._logger.debug('Processing event: %s', event.dump())
+
+            self._config.simulation_info.scope.append(events[0].type)
+            self._process_events(events)
             self._config.simulation_info.scope.pop()
 
     def _initialize(self):
@@ -52,15 +55,54 @@ class CloudSimulator:
         self._add_prediction_time(int(self._config.params['first_prediction_time']))
         self._add_simulation_started_event()
 
+    def _process_events(self, events):
+        strategies = self._config.strategies
+        events_type = events[0].type
+
+        if events_type in [EventType.TIME_TO_PREDICT, EventType.UPDATES_FINISHED]:
+            if len(events) > 1:
+                self._logger.warning('There should be only one event of type %s. %d found.',
+                                     EventType.get_type(events[0].type), len(events))
+            self._process_event(events[0])
+
+        elif events_type == EventType.SUBMIT:
+            self._config.statistics.notify_event('submit_events', len(events))
+            for event in events:
+                self._config.resource_manager.add_vm(event.vm, event.process_time)
+                strategies.scheduling.schedule_vm(event.vm)
+
+        elif events_type == EventType.UPDATE:
+            self._config.statistics.notify_event('update_events', len(events))
+            for event in events:
+                self._config.resource_manager.update_vm_demands(event.vm)
+
+        elif events_type == EventType.FINISH:
+            for event in events:
+                if self._config.resource_manager.is_it_time_to_finish_vm(event.vm):
+                    self._config.statistics.notify_event('finish_events')
+                    self._config.resource_manager.free_vm_resources(event.vm)
+                    self._config.statistics.notify_event('vm_finished',
+                                                         vm= event.vm)
+                    self._verify_machines_to_turn_off()
+                else:
+                    self._config.statistics.notify_event('outdated_finish_events')
+
+        elif events_type == EventType.NOTIFY:
+            for event in events:
+                self._config.statistics.notify_event(event.message)
+
+        else:
+            self._logger.error('Unknown event: %s'.format(event.dump()))
+            raise Exception('Unknown event: %s'.format(event.dump()))
+
+        if self._does_simulation_finished():
+            self._verify_machines_to_turn_off()
+            self._config.events_queue.clear()
+
     def _process_event(self, event):
         strategies = self._config.strategies
 
-        if event.type == EventType.SUBMIT:
-            self._config.statistics.notify_event('submit_events')
-            self._config.resource_manager.add_vm(event.vm, event.process_time)
-            strategies.scheduling.schedule_vm(event.vm)
-
-        elif event.type == EventType.TIME_TO_PREDICT:
+        if event.type == EventType.TIME_TO_PREDICT:
             for server in self._config.resource_manager.online_servers():
                 for vm in server.vm_list():
                     prediction = strategies.prediction.predict(vm)
@@ -73,10 +115,6 @@ class CloudSimulator:
             self._add_prediction_time(
                 self._config.simulation_info.current_timestamp + strategies.prediction.next_prediction_interval())
 
-        elif event.type == EventType.UPDATE:
-            self._config.statistics.notify_event('update_events')
-            self._config.resource_manager.update_vm_demands(event.vm)
-
         elif event.type == EventType.UPDATES_FINISHED:
             self._config.simulation_info.scope.append('migration')
             should_migrate = strategies.migration.list_of_vms_to_migrate(
@@ -88,26 +126,10 @@ class CloudSimulator:
             self._try_to_allocate_vms_in_pool()
             self._verify_machines_to_turn_off()
 
-        elif event.type == EventType.FINISH:
-            if self._config.resource_manager.is_it_time_to_finish_vm(event.vm):
-                self._config.statistics.notify_event('finish_events')
-                self._config.resource_manager.free_vm_resources(event.vm)
-                self._config.statistics.notify_event('vm_finished',
-                                                     vm= event.vm)
-                self._verify_machines_to_turn_off()
-            else:
-                self._config.statistics.notify_event('outdated_finish_events')
-
-        elif event.type == EventType.NOTIFY:
-            self._config.statistics.notify_event(event.message)
-
         else:
             self._logger.error('Unknown event: %s'.format(event.dump()))
             raise Exception('Unknown event: %s'.format(event.dump()))
 
-        if self._does_simulation_finished():
-            self._verify_machines_to_turn_off()
-            self._config.events_queue.clear()
 
     def _does_simulation_finished(self):
         if len(self._config.resource_manager.online_vms_names()) == 0 and \
