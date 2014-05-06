@@ -26,7 +26,7 @@
 from core.server import Server
 from core.event import EventBuilder
 
-class Environment:
+class ResourceManager:
 
     def __init__(self, environment_builder):
         self._builder = environment_builder

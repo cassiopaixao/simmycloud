@@ -45,8 +45,8 @@ class MeasurementReader(SimulationModule):
         filepath = '{}/{}'.format(self._directory, path)
 
         measurements = []
-        measurements.append({'cpu': self._config.environment.get_vm_allocation_data(vm_name).submit_cpu_demand,
-                             'mem': self._config.environment.get_vm_allocation_data(vm_name).submit_mem_demand
+        measurements.append({'cpu': self._config.resource_manager.get_vm_allocation_data(vm_name).submit_cpu_demand,
+                             'mem': self._config.resource_manager.get_vm_allocation_data(vm_name).submit_mem_demand
                              })
 
         if not os.path.isfile(filepath): #verifies if file exists
@@ -76,7 +76,7 @@ class MeasurementReader(SimulationModule):
 
     def _check_overloaded_servers(self):
         overloaded_servers = []
-        for server in self._config.environment.online_servers():
+        for server in self._config.resource_manager.online_servers():
             free_cpu, free_mem = server.cpu, server.mem
             for vm in server.vm_list():
                 measurement = self.current_measurement(vm.name)

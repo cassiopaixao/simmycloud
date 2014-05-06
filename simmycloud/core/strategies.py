@@ -72,7 +72,7 @@ class MigrationStrategy(Strategy):
             vms_to_migrate = func(self, *args, **kwargs)
             self.__old_servers__ = dict()
             for vm in vms_to_migrate:
-                self.__old_servers__[vm.name] = self._config.environment.get_server_of_vm(vm.name)
+                self.__old_servers__[vm.name] = self._config.resource_manager.get_server_of_vm(vm.name)
             return vms_to_migrate
         return new_list_of_vms_to_migrate
 
@@ -85,7 +85,7 @@ class MigrationStrategy(Strategy):
         def new_migrate_vm(self, *args, **kwargs):
             vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
             res = func(self, *args, **kwargs)
-            new_server = self._config.environment.get_server_of_vm(vm.name)
+            new_server = self._config.resource_manager.get_server_of_vm(vm.name)
             if new_server != self.__old_servers__[vm.name]:
                 self._config.statistics.notify_event('vms_migrated')
             if new_server is None:

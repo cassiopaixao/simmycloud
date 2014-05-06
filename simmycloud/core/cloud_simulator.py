@@ -55,11 +55,11 @@ class CloudSimulator:
 
         if event.type == EventType.SUBMIT:
             self._config.statistics.notify_event('submit_events')
-            self._config.environment.add_vm(event.vm, event.process_time)
+            self._config.resource_manager.add_vm(event.vm, event.process_time)
             strategies.scheduling.schedule_vm(event.vm)
 
         elif event.type == EventType.TIME_TO_PREDICT:
-            for server in self._config.environment.online_servers():
+            for server in self._config.resource_manager.online_servers():
                 for vm in server.vm_list():
                     prediction = strategies.prediction.predict(vm)
                     if prediction is not None:
@@ -73,21 +73,21 @@ class CloudSimulator:
 
         elif event.type == EventType.UPDATE:
             self._config.statistics.notify_event('update_events')
-            self._config.environment.update_vm_demands(event.vm)
+            self._config.resource_manager.update_vm_demands(event.vm)
 
         elif event.type == EventType.UPDATES_FINISHED:
             should_migrate = strategies.migration.list_of_vms_to_migrate(
-                self._config.environment.online_servers())
+                self._config.resource_manager.online_servers())
             for vm in should_migrate:
-                self._config.environment.free_vm_resources(vm)
+                self._config.resource_manager.free_vm_resources(vm)
             strategies.migration.migrate_all(should_migrate)
             self._try_to_allocate_vms_in_pool()
             self._verify_machines_to_turn_off()
 
         elif event.type == EventType.FINISH:
-            if self._config.environment.is_it_time_to_finish_vm(event.vm):
+            if self._config.resource_manager.is_it_time_to_finish_vm(event.vm):
                 self._config.statistics.notify_event('finish_events')
-                self._config.environment.free_vm_resources(event.vm)
+                self._config.resource_manager.free_vm_resources(event.vm)
                 self._config.statistics.notify_event('vm_finished',
                                                      vm= event.vm)
                 self._verify_machines_to_turn_off()
@@ -106,7 +106,7 @@ class CloudSimulator:
             self._config.events_queue.clear()
 
     def _does_simulation_finished(self):
-        if len(self._config.environment.online_vms_names()) == 0 and \
+        if len(self._config.resource_manager.online_vms_names()) == 0 and \
             len(self._config.vms_pool) == 0 and \
             not self._config.events_queue.has_submit_events():
             return True
@@ -143,7 +143,7 @@ class CloudSimulator:
                 self._config.vms_pool.remove(vm)
 
     def _verify_machines_to_turn_off(self):
-        online_servers = list(self._config.environment.online_servers())
+        online_servers = list(self._config.resource_manager.online_servers())
         for i in range(len(online_servers)):
             self._config.strategies.powering_off.power_off_if_necessary(online_servers[i])
 

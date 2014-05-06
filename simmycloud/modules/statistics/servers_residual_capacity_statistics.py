@@ -82,7 +82,7 @@ class ServersResidualCapacityStatistics(StatisticsModule):
         self._out.write(self.CSV_SEPARATOR.join(data))
 
     def _build(self):
-        for server in self._config.environment.all_servers():
+        for server in self._config.resource_manager.all_servers():
             server_field = ServerResidualCapacityPercentageField(server.describe())
             server_field.set_server(server)
             self._fields.append(server_field)
