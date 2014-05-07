@@ -33,7 +33,7 @@ class OnlineServersField(StatisticsField):
         return len(self._config.resource_manager.online_servers())
 
 
-# QoS
+# SLA violations
 class TightedVMsField(StatisticsField):
     def value(self):
         overloaded_servers = self._config.module['MeasurementReader'].overloaded_servers()
