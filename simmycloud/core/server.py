@@ -56,7 +56,7 @@ class Server:
 		return self.vm_dict.values()
 
 	def is_overloaded(self):
-		return (self.cpu_alloc > self.cpu and self.mem_alloc > self.mem)
+		return (self.cpu_alloc > self.cpu or self.mem_alloc > self.mem)
 
 	def describe(self):
 		return '{} ({}, {})'.format(self.name,
