@@ -67,9 +67,11 @@ class CloudSimulator:
 
         elif events_type == EventType.SUBMIT:
             self._config.statistics.notify_event('submit_events', len(events))
+            vms = []
             for event in events:
                 self._config.resource_manager.add_vm(event.vm, event.process_time)
-                strategies.scheduling.schedule_vm(event.vm)
+                vms.append(event.vm)
+            strategies.scheduling.schedule_vms(vms)
 
         elif events_type == EventType.UPDATE:
             self._config.statistics.notify_event('update_events', len(events))

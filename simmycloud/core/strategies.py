@@ -42,26 +42,30 @@ class Strategy:
 
 class SchedulingStrategy(Strategy):
 
-    def schedule_vm_strategy(func):
-        def new_schedule_vm(self, *args, **kwargs):
-            server = func(self, *args, **kwargs)
-            vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
-            if server is not None:
-                self._config.getLogger(self).debug('VM %s was allocated to server %s',
-                                                   vm.name, server.name)
-            elif vm not in self._config.vms_pool.get_ordered_list():
-                # note that this method can be called during migration
-                if 'migration' not in self._config.simulation_info.scope:
+    def schedule_vms_strategy(func):
+        def new_schedule_vms(self, *args, **kwargs):
+            vms = [arg for arg in args if isinstance(arg, list)][0]
+            func(self, *args, **kwargs)
+
+            for vm in vms:
+                server = self._config.resource_manager.get_server_of_vm(vm.name)
+                if server is not None:
+                    self._config.getLogger(self).debug('VM %s was allocated to server %s',
+                                                       vm.name, server.name)
+
+                elif vm not in self._config.vms_pool.get_ordered_list() \
+                        and 'migration' not in self._config.simulation_info.scope:
                     self._config.vms_pool.add_vm(vm, PendingVMsPool.LOW_PRIORITY)
                     self._config.statistics.notify_event('vms_added_to_pending')
                     self._config.getLogger(self).debug('VM %s was added to pending', vm.name)
-            return server
-        return new_schedule_vm
 
-    """ Schedule the VirtualMachine in a server in which it fits.
-        If no server can provide the VM's demands, nothing needs to be done. """
-    @schedule_vm_strategy
-    def schedule_vm(self, vm):
+            return
+        return new_schedule_vms
+
+    """ Schedules a list of VirtualMachine in servers in which they fit.
+        If no server can provide one VM's demands, nothing needs to be done. """
+    @schedule_vms_strategy
+    def schedule_vms(self, vms):
         raise NotImplementedError
 
 

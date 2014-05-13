@@ -27,7 +27,11 @@ from core.strategies import SchedulingStrategy
 
 class BestFit(SchedulingStrategy):
 
-    @SchedulingStrategy.schedule_vm_strategy
+    @SchedulingStrategy.schedule_vms_strategy
+    def schedule_vms(self, vms):
+        for vm in vms:
+            self.schedule_vm(vm)
+
     def schedule_vm(self, vm):
         server = self.get_best_fit(vm,
                                    self._config.resource_manager.online_servers())
