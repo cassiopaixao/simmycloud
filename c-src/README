@@ -1,0 +1,16 @@
+TODO: organize and automate this. Some notes:
+
+- requires Python 3.4
+
+- TISEAN is GPL2. Review our license.
+
+- to compile the module:
+  $ python3.4 setup.py build
+
+- to install the module:
+  $ cp ./c-src/build/lib.linux-x86_64-3.4/rbf.cpython-34m.so ./simmycloud/strategies/prediction
+
+- to use:
+  from strategies.prediction import rbf
+  values = list or tuple with values to be used to predict
+  prediction = rbf.predict(values)
