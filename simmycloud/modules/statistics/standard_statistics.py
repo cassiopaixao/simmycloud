@@ -106,7 +106,7 @@ class StandardStatistics(StatisticsModule):
     def _build(self):
         self._add_field(EnvironmentField('environment'))
         self._add_field(SchedulingStrategyField('scheduling'))
-        self._add_field(PredictionStrategyField('scheduling'))
+        self._add_field(PredictionStrategyField('prediction'))
         self._add_field(MigrationStrategyField('migration'))
         self._add_field(PoweringOffStrategyField('powering_off'))
         self._add_field(TightedVMsField('sla_violations'))
