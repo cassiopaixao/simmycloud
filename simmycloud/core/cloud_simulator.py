@@ -123,7 +123,7 @@ class CloudSimulator:
                 self._config.resource_manager.online_servers())
             for vm in should_migrate:
                 self._config.resource_manager.free_vm_resources(vm)
-            strategies.migration.migrate_all(should_migrate)
+            strategies.migration.migrate_vms(should_migrate)
             self._config.simulation_info.scope.pop()
             self._try_to_allocate_vms_in_pool()
             self._verify_machines_to_turn_off()
