@@ -31,6 +31,6 @@ class FakeMigration(MigrationStrategy):
     def list_of_vms_to_migrate(self, list_of_online_servers):
         return []
 
-    @MigrationStrategy.migrate_vm_strategy
-    def migrate_vm(self, vm):
+    @MigrationStrategy.migrate_vms_strategy
+    def migrate_vms(self, vms):
         pass

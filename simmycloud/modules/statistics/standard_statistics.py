@@ -109,7 +109,7 @@ class StandardStatistics(StatisticsModule):
         self._add_field(PredictionStrategyField('scheduling'))
         self._add_field(MigrationStrategyField('migration'))
         self._add_field(PoweringOffStrategyField('powering_off'))
-        self._add_field(TightedVMsField('qos_fails'))
+        self._add_field(TightedVMsField('sla_violations'))
         self._add_field(OnlineServersField('online_servers'))
         self._add_field(OverloadedServersField('overloaded_servers'))
         self._add_field(CounterField('vms_migrated'))

@@ -264,21 +264,24 @@ class EventsQueue:
                                     ))
         self._counters[event.time] = self._counters[event.time] + 1
 
-    def next_event(self):
-        event = None
+    def next_events(self):
+        if len(self._heap) == 0:
+            return None
 
-        if len(self._heap) > 0:
-            event = heapq.heappop(self._heap)
+        events = [heapq.heappop(self._heap)[-1]]
+        if events[0].type == EventType.SUBMIT: self._add_new_submit_event()
 
-        if event is not None:
-            event = event[-1]
-            if event.type == EventType.SUBMIT:
-                self._add_new_submit_event()
-            if event.time > self._last_timestamp:
-                self._logger.debug('Timestamp %d is over, had %d events.',
-                                   self._last_timestamp,
-                                   self._counters[self._last_timestamp])
-                del self._counters[self._last_timestamp]
-                self._last_timestamp = event.time
+        while len(self._heap) > 0 and\
+              self._heap[0][-1].time == events[0].time and\
+              self._heap[0][-1].type == events[0].type:
+            events.append(heapq.heappop(self._heap)[-1])
+            if events[-1].type == EventType.SUBMIT: self._add_new_submit_event()
 
-        return event
+        if events[0].time > self._last_timestamp:
+            self._logger.debug('Timestamp %d is over, had %d events.',
+                               self._last_timestamp,
+                               self._counters[self._last_timestamp])
+            del self._counters[self._last_timestamp]
+            self._last_timestamp = events[0].time
+
+        return events

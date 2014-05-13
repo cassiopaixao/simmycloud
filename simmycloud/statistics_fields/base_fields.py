@@ -42,7 +42,7 @@ class CounterField(StatisticsField):
 
 class EnvironmentField(StatisticsField):
     def value(self):
-        return self._config.environment._builder.__class__.__name__
+        return self._config.resource_manager._builder.__class__.__name__
 
 
 class SchedulingStrategyField(StatisticsField):

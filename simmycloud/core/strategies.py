@@ -42,26 +42,30 @@ class Strategy:
 
 class SchedulingStrategy(Strategy):
 
-    def schedule_vm_strategy(func):
-        def new_schedule_vm(self, *args, **kwargs):
-            server = func(self, *args, **kwargs)
-            vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
-            if server is not None:
-                self._config.getLogger(self).debug('VM %s was allocated to server %s',
-                                                   vm.name, server.name)
-            elif vm not in self._config.vms_pool.get_ordered_list():
-                # note that this method can be called during migration
-                if self._config.simulation_info.current_event.type != EventType.UPDATES_FINISHED:
+    def schedule_vms_strategy(func):
+        def new_schedule_vms(self, *args, **kwargs):
+            vms = [arg for arg in args if isinstance(arg, list)][0]
+            func(self, *args, **kwargs)
+
+            for vm in vms:
+                server = self._config.resource_manager.get_server_of_vm(vm.name)
+                if server is not None:
+                    self._config.getLogger(self).debug('VM %s was allocated to server %s',
+                                                       vm.name, server.name)
+
+                elif vm not in self._config.vms_pool.get_ordered_list() \
+                        and 'migration' not in self._config.simulation_info.scope:
                     self._config.vms_pool.add_vm(vm, PendingVMsPool.LOW_PRIORITY)
                     self._config.statistics.notify_event('vms_added_to_pending')
                     self._config.getLogger(self).debug('VM %s was added to pending', vm.name)
-            return server
-        return new_schedule_vm
 
-    """ Schedule the VirtualMachine in a server in which it fits.
-        If no server can provide the VM's demands, nothing needs to be done. """
-    @schedule_vm_strategy
-    def schedule_vm(self, vm):
+            return
+        return new_schedule_vms
+
+    """ Schedules a list of VirtualMachine in servers in which they fit.
+        If no server can provide one VM's demands, nothing needs to be done. """
+    @schedule_vms_strategy
+    def schedule_vms(self, vms):
         raise NotImplementedError
 
 
@@ -72,27 +76,37 @@ class MigrationStrategy(Strategy):
             vms_to_migrate = func(self, *args, **kwargs)
             self.__old_servers__ = dict()
             for vm in vms_to_migrate:
-                self.__old_servers__[vm.name] = self._config.environment.get_server_of_vm(vm.name)
+                self.__old_servers__[vm.name] = self._config.resource_manager.get_server_of_vm(vm.name)
             return vms_to_migrate
         return new_list_of_vms_to_migrate
 
-    def migrate_all_strategy(func):
-        def new_migrate_all(self, *args, **kwargs):
-            return func(self, *args, **kwargs)
-        return new_migrate_all
+    def migrate_vms_strategy(func):
+        def new_migrate_vms(self, *args, **kwargs):
+            vms = [arg for arg in args if isinstance(arg, list)][0]
+            func(self, *args, **kwargs)
 
-    def migrate_vm_strategy(func):
-        def new_migrate_vm(self, *args, **kwargs):
-            vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
-            res = func(self, *args, **kwargs)
-            new_server = self._config.environment.get_server_of_vm(vm.name)
-            if new_server != self.__old_servers__[vm.name]:
-                self._config.statistics.notify_event('vms_migrated')
-            if new_server is None:
-                self._config.vms_pool.add_vm(vm, PendingVMsPool.HIGH_PRIORITY)
-                self._config.statistics.notify_event('vms_paused')
-            return res
-        return new_migrate_vm
+            for vm in vms:
+                new_server = self._config.resource_manager.get_server_of_vm(vm.name)
+                if new_server is None:
+                    self._config.vms_pool.add_vm(vm, PendingVMsPool.HIGH_PRIORITY)
+                    self._config.statistics.notify_event('vms_paused')
+                    self._config.getLogger(self).debug('VM %s migration from server %s failed. Added to vms_pool with high priority.',
+                                                       vm.name,
+                                                       self.__old_servers__[vm.name].name)
+
+                elif new_server == self.__old_servers__[vm.name]:
+                    self._config.getLogger(self).debug('VM %s not migrated. It keeps on server %s.',
+                                                       vm.name,
+                                                       new_server.name)
+
+                elif new_server != self.__old_servers__[vm.name]:
+                    self._config.statistics.notify_event('vms_migrated')
+                    self._config.getLogger(self).debug('VM %s migrated from server %s to server %s',
+                                                       vm.name,
+                                                       self.__old_servers__[vm.name].name,
+                                                       new_server.name)
+            return
+        return new_migrate_vms
 
     """ Returns a list of virtual machines that should be migrated.
         This method is called after all updates in a timestamp.
@@ -101,20 +115,9 @@ class MigrationStrategy(Strategy):
     def list_of_vms_to_migrate(self, list_of_online_servers):
         raise NotImplementedError
 
-    """ Migrates all the virtual machines that didn't fit in theirs last servers.
-        These VMs are allocated nowhere when this method is called.
-        For each VirtualMachine in list, the migrate_vm method MUST be called.
-        If you don't override this method, the migrate_vm will be called for each
-        VirtualMachine in list. """
-    @migrate_all_strategy
-    def migrate_all(self, list_of_vms):
-        for vm in list_of_vms:
-            self.migrate_vm(vm)
-
-    """ Schedule the VirtualMachine in a server in which it fits.
-        If no server can provide the VM's demands, nothing needs to be done. """
-    @migrate_vm_strategy
-    def migrate_vm(self, vm):
+    """ Migrates all the virtual machines that didn't fit in theirs last servers. """
+    @migrate_vms_strategy
+    def migrate_vms(self, vms):
         raise NotImplementedError
 
 

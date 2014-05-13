@@ -30,10 +30,10 @@ from core.statistics_manager import StatisticsField
 
 class OnlineServersField(StatisticsField):
     def value(self):
-        return len(self._config.environment.online_servers())
+        return len(self._config.resource_manager.online_servers())
 
 
-# QoS
+# SLA violations
 class TightedVMsField(StatisticsField):
     def value(self):
         overloaded_servers = self._config.module['MeasurementReader'].overloaded_servers()
@@ -48,7 +48,7 @@ class OverloadedServersField(StatisticsField):
 
 class VMsAllocatedField(StatisticsField):
     def value(self):
-        return len(self._config.environment._vm_hosts)
+        return len(self._config.resource_manager._vm_hosts)
 
 
 class VMsInPoolField(StatisticsField):
@@ -60,7 +60,7 @@ class ServersTotalResidualCapacityField(StatisticsField):
     def value(self):
         def residual_capacity(s):
             return math.sqrt(math.pow(s.cpu - s.cpu_alloc, 2) + math.pow(s.mem - s.mem_alloc, 2))
-        online_servers = self._config.environment.online_servers()
+        online_servers = self._config.resource_manager.online_servers()
         return math.fsum([residual_capacity(server) for server in online_servers])
 
 

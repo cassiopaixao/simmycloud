@@ -29,7 +29,7 @@ import re
 
 from logging.handlers import RotatingFileHandler
 
-from core.environment import Environment
+from core.resource_manager import ResourceManager
 from core.statistics_manager import StatisticsManager
 from core.event import EventsQueue
 from core.vms_pool import PendingVMsPool
@@ -39,7 +39,7 @@ class Config:
     def __init__(self):
         self.identifier = ''
         self.logging_level = logging.INFO
-        self.environment = None
+        self.resource_manager = None
         self.strategies = _Strategies()
         self.statistics = None
         self.events_queue = EventsQueue()
@@ -65,12 +65,12 @@ class Config:
 
     def _initialize_all(self):
         self.events_queue.set_config(self)
-        self.environment.set_config(self)
+        self.resource_manager.set_config(self)
         self.statistics.set_config(self)
         self.strategies.set_config(self)
 
         self.events_queue.initialize()
-        self.environment.initialize()
+        self.resource_manager.initialize()
         self.statistics.initialize()
         self.strategies.initialize_all()
 
@@ -125,7 +125,7 @@ class ConfigBuilder:
             config.strategies.scheduling = cls._get_object(section['scheduling_strategy'])
             config.strategies.migration = cls._get_object(section['migration_strategy'])
             config.strategies.powering_off = cls._get_object(section['powering_off_strategy'])
-            config.environment = Environment(cls._get_object(section['environment_builder']))
+            config.resource_manager = ResourceManager(cls._get_object(section['environment_builder']))
             # statistics
             config.statistics = StatisticsManager()
             statistics_modules = [value.strip() for value in section['statistics_modules'].split(',') if value.strip()]

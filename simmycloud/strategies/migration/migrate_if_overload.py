@@ -43,6 +43,6 @@ class MigrateIfOverload(MigrationStrategy):
                         break
         return vms_to_migrate
 
-    @MigrationStrategy.migrate_vm_strategy
-    def migrate_vm(self, vm):
-        self._config.strategies.scheduling.schedule_vm(vm)
+    @MigrationStrategy.migrate_vms_strategy
+    def migrate_vms(self, vms):
+        self._config.strategies.scheduling.schedule_vms(vms)
