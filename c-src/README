@@ -8,7 +8,7 @@ TODO: organize and automate this. Some notes:
   $ python3.4 setup.py build
 
 - to install the module:
-  $ cp ./c-src/build/lib.linux-x86_64-3.4/rbf.cpython-34m.so ./simmycloud/strategies/prediction
+  $ cp ./c-src/build/lib.linux-x86_64-3.4/rbf.cpython-34m.so ./simmycloud/modules/custom/lib
 
 - to use:
   from strategies.prediction import rbf
