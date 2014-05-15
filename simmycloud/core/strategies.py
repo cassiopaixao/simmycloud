@@ -25,7 +25,6 @@
 
 from core.vms_pool import PendingVMsPool
 from core.virtual_machine import VirtualMachine
-from core.event import EventType
 
 class Strategy:
     def set_config(self, config):
@@ -125,9 +124,16 @@ class PredictionStrategy(Strategy):
 
     def predict_strategy(func):
         def new_predict(self, *args, **kwargs):
+            vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
             new_demands = func(self, *args, **kwargs)
             if new_demands is not None:
+                self._config.getLogger(self).debug('Predicted demands for VM %s: %f, %f',
+                                                   vm.name,
+                                                   new_demands['cpu'],
+                                                   new_demands['mem'])
                 self._config.statistics.notify_event('new_demands')
+            else:
+                self._config.getLogger(self).debug('No predicted demands for VM %s', vm.name)
             return new_demands
         return new_predict
 
