@@ -41,8 +41,8 @@ class RBFPrediction(PredictionStrategy):
             return None
 
         new_demands = VirtualMachine('')
-        new_demands.cpu = self.rbf_prediction.predict([m['cpu'] for m in last_measurements])
-        new_demands.mem = self.rbf_prediction.predict([m['mem'] for m in last_measurements])
+        new_demands.cpu = self._prediction_for([m['cpu'] for m in last_measurements])
+        new_demands.mem = self._prediction_for([m['mem'] for m in last_measurements])
         return new_demands
 
     def _get_last(self, vm, window_size):
@@ -50,3 +50,12 @@ class RBFPrediction(PredictionStrategy):
             vm.name,
             self._config.simulation_info.current_timestamp)
         return measurements[-window_size:]
+
+    def _prediction_for(self, values):
+        try:
+            return self.rbf_prediction.predict(values)
+        except Exception as e:
+            self._config.getLogger(self).debug('RBF exception error: %s', e)
+            self._config.getLogger(self).debug('RBF exception values: [%s]',
+                                               ', '.join([str(v) for v in values]))
+            return float(sum(values)) / len(values)
