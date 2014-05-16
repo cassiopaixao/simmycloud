@@ -34,8 +34,7 @@ class BFDItemCentric(SchedulingStrategy):
         elif coeficient == '1/R(j)':
             self.coeficient_function = self._frac_1_rj
         elif coeficient == 'R(j)/C(j)':
-            self.coeficient_function = lambda items, bins: \
-                                        self._frac_1_cj(items, bins) / self._frac_1_rj(items, bins)
+            self.coeficient_function = self._frac_rj_cj
         else:
             raise 'Set bfd_measure_coeficient_function param with one of these values: 1/C(j), 1/R(j) or R(j)/C(j).'
 
@@ -104,3 +103,11 @@ class BFDItemCentric(SchedulingStrategy):
     def _frac_1_rj(self, items, bins):
         return {'cpu': 1.0/max(sum([i.cpu for i in items]), 0.000001),
                 'mem': 1.0/max(sum([i.mem for i in items]), 0.000001)}
+
+    def _frac_rj_cj(self, items, bins):
+        frac_cj = self._frac_1_cj(items, bins)
+        frac_rj = self._frac_1_rj(items, bins)
+
+        # (1/C(j))/(1/R(j)) = (1/C(j))*R(j) = R(j)/C(j)
+        return {'cpu': frac_cj['cpu']/frac_rj['cpu'],
+                'mem': frac_cj['mem']/frac_rj['mem']}
