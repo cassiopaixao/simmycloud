@@ -64,6 +64,12 @@ class PendingVMsPool:
     def get_ordered_list(self):
         return list(self._high_priority) + list(self._low_priority)
 
+    def get_high_priority_vms(self):
+        return list(self._high_priority)
+
+    def get_low_priority_vms(self):
+        return list(self._low_priority)
+
     def remove(self, vm):
         if vm in self._high_priority:
             self._high_priority.remove(vm)

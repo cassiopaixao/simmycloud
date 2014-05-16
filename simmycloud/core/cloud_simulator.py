@@ -164,7 +164,8 @@ class CloudSimulator:
 
     def _try_to_allocate_vms_in_pool(self):
         vms = list(self._config.vms_pool.get_ordered_list())
-        self._config.strategies.scheduling.schedule_vms(vms)
+        self._config.strategies.scheduling.schedule_vms(self._config.vms_pool.get_high_priority_vms())
+        self._config.strategies.scheduling.schedule_vms(self._config.vms_pool.get_low_priority_vms())
         for vm in vms:
             if self._config.resource_manager.get_server_of_vm(vm.name) is not None:
                 self._config.vms_pool.remove(vm)
