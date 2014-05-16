@@ -28,7 +28,6 @@ from core.event import EventType, EventBuilder
 class CloudSimulator:
 
     def __init__(self, config):
-        self._server_of_vm = dict()
         self._config = config
         self._logger = None
 
@@ -164,9 +163,10 @@ class CloudSimulator:
                                                  timestamp=self._config.simulation_info.current_timestamp)
 
     def _try_to_allocate_vms_in_pool(self):
-        for vm in self._config.vms_pool.get_ordered_list():
-            server = self._config.strategies.scheduling.schedule_vm(vm)
-            if server != None:
+        vms = list(self._config.vms_pool.get_ordered_list())
+        self._config.strategies.scheduling.schedule_vms(vms)
+        for vm in vms:
+            if self._config.resource_manager.get_server_of_vm(vm.name) is not None:
                 self._config.vms_pool.remove(vm)
 
     def _verify_machines_to_turn_off(self):
