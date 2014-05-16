@@ -98,9 +98,9 @@ class BFDItemCentric(SchedulingStrategy):
 
 
     def _frac_1_cj(self, items, bins):
-        return {'cpu': 1.0/sum([b.cpu - b.cpu_alloc for b in bins]),
-                'mem': 1.0/sum([b.mem - b.mem_alloc for b in bins])}
+        return {'cpu': 1.0/max(sum([b.cpu - b.cpu_alloc for b in bins]), 0.000001),
+                'mem': 1.0/max(sum([b.mem - b.mem_alloc for b in bins]), 0.000001)}
 
     def _frac_1_rj(self, items, bins):
-        return {'cpu': 1.0/sum([i.cpu for i in items]),
-                'mem': 1.0/sum([i.mem for i in items])}
+        return {'cpu': 1.0/max(sum([i.cpu for i in items]), 0.000001),
+                'mem': 1.0/max(sum([i.mem for i in items]), 0.000001)}
