@@ -161,6 +161,7 @@ class CloudSimulator:
                                                  timestamp=self._config.simulation_info.last_event_timestamp)
             self._config.statistics.notify_event('timestamp_starting',
                                                  timestamp=self._config.simulation_info.current_timestamp)
+            self._logger.info('Timestamp start: %d', self._config.simulation_info.current_timestamp)
 
     def _try_to_allocate_vms_in_pool(self):
         vms = list(self._config.vms_pool.get_ordered_list())
