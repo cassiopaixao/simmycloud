@@ -25,19 +25,57 @@
 
 from core.strategies import SchedulingStrategy
 
-class BFDItemCentric(SchedulingStrategy):
+class BFD(SchedulingStrategy):
 
     def initialize(self):
         coeficient = self._config.params['bfd_measure_coeficient_function']
         if coeficient == '1/C(j)':
-            self.coeficient_function = self._frac_1_cj
+            self.coeficient_function = frac_1_cj
         elif coeficient == '1/R(j)':
-            self.coeficient_function = self._frac_1_rj
+            self.coeficient_function = frac_1_rj
         elif coeficient == 'R(j)/C(j)':
-            self.coeficient_function = self._frac_rj_cj
+            self.coeficient_function = frac_rj_cj
         else:
             raise 'Set bfd_measure_coeficient_function param with one of these values: 1/C(j), 1/R(j) or R(j)/C(j).'
 
+    def compute_sizes(self, items, bins):
+        alpha = self.coeficient_function(items, bins)
+        alpha_cpu, alpha_mem = alpha['cpu'], alpha['mem']
+
+        beta = alpha
+        beta_cpu, beta_mem = beta['cpu'], beta['mem']
+
+        self.s_i = {}
+        for item in items:
+            self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
+
+        self.s_b = {}
+        for bin in bins:
+            self.s_b[bin.name] = beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc)
+
+
+    def get_biggest_item(self, items):
+        return max(items, key=lambda item: self.s_i[item.name])
+
+    def get_smallest_bin(self, bins):
+        return min(bins, key=lambda bin: self.s_b[bin.name])
+
+    def get_smallest_feasible_bin(self, item, bins):
+        sorted_bins = sorted(bins, key=lambda bin: self.s_b[bin.name])
+        for bin in sorted_bins:
+            if fits(item, bin):
+                return bin
+        return None
+
+    def get_biggest_feasible_item(self, items, bin):
+        sorted_items = sorted(items, key=lambda item: self.s_i[item.name], reverse=True)
+        for item in sorted_items:
+            if fits(item, bin):
+                return item
+        return None
+
+
+class BFDItemCentric(BFD):
 
     @SchedulingStrategy.schedule_vms_strategy
     def schedule_vms(self, vms):
@@ -65,49 +103,59 @@ class BFDItemCentric(SchedulingStrategy):
             unpacked_items.remove(biggest_item)
 
 
-    def compute_sizes(self, items, bins):
-        alpha = self.coeficient_function(items, bins)
-        alpha_cpu, alpha_mem = alpha['cpu'], alpha['mem']
+class BFDBinCentric(BFD):
 
-        beta = alpha
-        beta_cpu, beta_mem = beta['cpu'], beta['mem']
+    @SchedulingStrategy.schedule_vms_strategy
+    def schedule_vms(self, vms):
+        remaining_vms = self.schedule_vms_at_servers(vms, self._config.resource_manager.online_servers())
+        if len(remaining_vms) > 0:
+            remaining_vms = self.schedule_vms_at_servers(vms, self._config.resource_manager.offline_servers(), active_bins=False)
 
-        self.s_i = {}
-        for item in items:
-            self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
+    def schedule_vms_at_servers(self, vms, bins, active_bins=True):
+        list_of_bins = list(bins)
+        unpacked_items = list(vms)
 
-        self.s_b = {}
-        for bin in bins:
-            self.s_b[bin.name] = beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc)
+        while len(list_of_bins) > 0:
+            self.compute_sizes(unpacked_items, list_of_bins)
+
+            smallest_bin = self.get_smallest_bin(list_of_bins)
+            have_used_bin = False
+
+            item = self.get_biggest_feasible_item(unpacked_items, smallest_bin)
+            while item is not None:
+                self.compute_sizes(unpacked_items, list_of_bins)
+
+                if not have_used_bin and not active_bins:
+                    self._config.resource_manager.turn_on_server(smallest_bin.name)
+
+                self._config.resource_manager.schedule_vm_at_server(item, smallest_bin.name)
+                have_used_bin = True
+                unpacked_items.remove(item)
+
+                item = self.get_biggest_feasible_item(unpacked_items, smallest_bin)
+
+            list_of_bins.remove(smallest_bin)
+
+        return unpacked_items
 
 
-    def get_biggest_item(self, items):
-        return max(items, key=lambda item: self.s_i[item.name])
-
-    def get_smallest_feasible_bin(self, item, bins):
-        sorted_bins = sorted(bins, key=lambda bin: self.s_b[bin.name])
-        for bin in sorted_bins:
-            if self.fits(item, bin):
-                return bin
-        return None
-
-    def fits(self, item, bin):
-        return bin.cpu - bin.cpu_alloc >= item.cpu and \
-               bin.mem - bin.mem_alloc >= item.mem
+def fits(item, bin):
+    return bin.cpu - bin.cpu_alloc >= item.cpu and \
+           bin.mem - bin.mem_alloc >= item.mem
 
 
-    def _frac_1_cj(self, items, bins):
-        return {'cpu': 1.0/max(sum([b.cpu - b.cpu_alloc for b in bins]), 0.000001),
-                'mem': 1.0/max(sum([b.mem - b.mem_alloc for b in bins]), 0.000001)}
+def frac_1_cj(items, bins):
+    return {'cpu': 1.0/max(sum([b.cpu - b.cpu_alloc for b in bins]), 0.000001),
+            'mem': 1.0/max(sum([b.mem - b.mem_alloc for b in bins]), 0.000001)}
 
-    def _frac_1_rj(self, items, bins):
-        return {'cpu': 1.0/max(sum([i.cpu for i in items]), 0.000001),
-                'mem': 1.0/max(sum([i.mem for i in items]), 0.000001)}
+def frac_1_rj(items, bins):
+    return {'cpu': 1.0/max(sum([i.cpu for i in items]), 0.000001),
+            'mem': 1.0/max(sum([i.mem for i in items]), 0.000001)}
 
-    def _frac_rj_cj(self, items, bins):
-        frac_cj = self._frac_1_cj(items, bins)
-        frac_rj = self._frac_1_rj(items, bins)
+def frac_rj_cj(items, bins):
+    frac_cj = frac_1_cj(items, bins)
+    frac_rj = frac_1_rj(items, bins)
 
-        # (1/C(j))/(1/R(j)) = (1/C(j))*R(j) = R(j)/C(j)
-        return {'cpu': frac_cj['cpu']/frac_rj['cpu'],
-                'mem': frac_cj['mem']/frac_rj['mem']}
+    # (1/C(j))/(1/R(j)) = (1/C(j))*R(j) = R(j)/C(j)
+    return {'cpu': frac_cj['cpu']/frac_rj['cpu'],
+            'mem': frac_cj['mem']/frac_rj['mem']}
