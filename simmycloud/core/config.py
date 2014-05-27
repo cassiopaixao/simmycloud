@@ -56,7 +56,8 @@ class Config:
                                       backupCount = int(self.params['log_max_backup_files']),
                                       encoding = 'utf8'
                                       )
-        formatter = logging.Formatter('%(levelname)s - %(name)s: %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s: %(message)s',
+                                      '%Y-%m-%d %H:%M:%S')
         handler.setFormatter(formatter)
         logger.setLevel(self.logging_level)
         logger.addHandler(handler)
