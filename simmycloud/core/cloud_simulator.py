@@ -84,9 +84,12 @@ class CloudSimulator:
                     self._config.resource_manager.free_vm_resources(event.vm)
                     self._config.statistics.notify_event('vm_finished',
                                                          vm= event.vm)
-                    self._verify_machines_to_turn_off()
+                    # this should be removed. A global observer/notifier can be used
+                    if 'MeasurementReader' in self._config.module:
+                        self._config.module['MeasurementReader'].free_cache_for_vm(event.vm.name)
                 else:
                     self._config.statistics.notify_event('outdated_finish_events')
+            self._verify_machines_to_turn_off()
 
         elif events_type == EventType.NOTIFY:
             for event in events:

@@ -32,47 +32,32 @@ from core.simulation_module import SimulationModule
 class MeasurementReader(SimulationModule):
 
     def initialize(self):
-        self._directory = self._config.params['measurements_directory']
         self._last_overloaded_servers = []
         self._last_overloaded_servers_check = -1
+        self._cached = CachedMeasurement(self._config.params['measurements_directory'],
+                                         int(self._config.params['measurements_interval_time']),
+                                         int(self._config.params['measurements_cache_intervals_ahead']))
+        self._cached.set_config(self._config)
 
     def current_measurement(self, vm_name):
-        return self.measurements_till(vm_name,
-                                      self._config.simulation_info.current_timestamp)[-1]
+        return self.measurements_interval(vm_name,
+                                          self._config.simulation_info.current_timestamp,
+                                          self._config.simulation_info.current_timestamp)[-1]
 
-    def measurements_till(self, vm_name, time_limit=None):
-        path = re.sub('(\d+)-(\d+)', '\\1/\\1-\\2.csv', vm_name)
-        filepath = '{}/{}'.format(self._directory, path)
+    def n_measurements_till(self, vm_name, n, till_time):
+        return self._cached.n_measurements_till(vm_name, n, till_time)
 
-        measurements = []
-        measurements.append({'cpu': self._config.resource_manager.get_vm_allocation_data(vm_name).submit_cpu_demand,
-                             'mem': self._config.resource_manager.get_vm_allocation_data(vm_name).submit_mem_demand
-                             })
-
-        if not os.path.isfile(filepath): #verifies if file exists
-            return measurements
-
-        opened_file = fileinput.input(filepath)
-
-        line = opened_file.readline()
-        while len(line) > 0:
-            start_time, end_time, cpu, mem = line.split(',')
-            if time_limit is not None and int(start_time) > time_limit: break
-
-            measurements.append({'cpu': float(cpu),
-                                 'mem': float(mem)
-                                 })
-
-            line = opened_file.readline()
-        opened_file.close()
-
-        return measurements
+    def measurements_interval(self, vm_name, from_time, till_time):
+        return self._cached.measurements_interval(vm_name, from_time, till_time)
 
     def overloaded_servers(self):
         if self._last_overloaded_servers_check != self._config.simulation_info.current_timestamp:
             self._last_overloaded_servers = self._check_overloaded_servers()
             self._last_overloaded_servers_check = self._config.simulation_info.current_timestamp
         return self._last_overloaded_servers
+
+    def free_cache_for_vm(self, vm_name):
+        self._cached.free_measurements_of_vm(vm_name)
 
     def _check_overloaded_servers(self):
         overloaded_servers = []
@@ -86,3 +71,68 @@ class MeasurementReader(SimulationModule):
                 overloaded_servers.append(server)
 
         return overloaded_servers
+
+
+class CachedMeasurement:
+
+    def __init__(self, input_directory, interval_time, cache_intervals_ahead):
+        self._input_directory = input_directory
+        self._interval_time = interval_time
+        self._cache_intervals_ahead = cache_intervals_ahead
+        self._measurements = {}
+
+    def set_config(self, config):
+        self._config = config
+
+    def measurements_interval(self, vm_name, from_time, till_time):
+        if vm_name not in self._measurements:
+            self._caches_measurements(vm_name, from_time, till_time)
+
+        from_time = from_time - self._interval_time
+
+        measurements = []
+        vm_allocation_data = self._config.resource_manager.get_vm_allocation_data(vm_name)
+        measurements.append({
+            'cpu' : vm_allocation_data.submit_cpu_demand,
+            'mem' : vm_allocation_data.submit_mem_demand,
+            'time': vm_allocation_data.submit_time
+            })
+        measurements.extend([m for m in self._measurements[vm_name] if m['time'] > from_time and m['time'] <= till_time])
+
+        return measurements
+
+    def n_measurements_till(self, vm_name, n, till_time):
+        from_time = till_time - (n+1)*self._interval_time
+
+        return self.measurements_interval(vm_name, from_time, till_time)[-n:]
+
+    def _caches_measurements(self, vm_name, from_time, till_time):
+        path = re.sub('(\d+)-(\d+)', '\\1/\\1-\\2.csv', vm_name)
+        filepath = '{}/{}'.format(self._input_directory, path)
+
+        measurements = []
+
+        if os.path.isfile(filepath): #verifies if file exists
+            opened_file = fileinput.input(filepath)
+
+            line = opened_file.readline()
+            while len(line) > 0:
+                start_time, end_time, cpu, mem = line.split(',')
+                if int(end_time)   < from_time:
+                    line = opened_file.readline()
+                    continue
+                if int(start_time) > till_time: break
+
+                measurements.append({'cpu' : float(cpu),
+                                     'mem' : float(mem),
+                                     'time': int(start_time)
+                                     })
+
+                line = opened_file.readline()
+
+            opened_file.close()
+
+        self._measurements[vm_name] = measurements
+
+    def free_measurements_of_vm(self, vm_name):
+        self._measurements.pop(vm_name, None)

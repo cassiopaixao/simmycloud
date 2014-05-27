@@ -46,10 +46,10 @@ class RBFPrediction(PredictionStrategy):
         return new_demands
 
     def _get_last(self, vm, window_size):
-        measurements = self.measurement_reader.measurements_till(
+        return self.measurement_reader.n_measurements_till(
             vm.name,
+            window_size,
             self._config.simulation_info.current_timestamp)
-        return measurements[-window_size:]
 
     def _prediction_for(self, values):
         try:

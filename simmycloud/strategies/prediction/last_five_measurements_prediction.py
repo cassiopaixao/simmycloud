@@ -42,7 +42,8 @@ class LastFiveMeasurementsPrediction(PredictionStrategy):
         return new_demands
 
     def _get_last_five(self, vm):
-        measurements = self.measurement_reader.measurements_till(
+        measurements = self.measurement_reader.n_measurements_till(
             vm.name,
+            5,
             self._config.simulation_info.current_timestamp)
         return measurements[-5:]
