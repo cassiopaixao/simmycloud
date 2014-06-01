@@ -22,13 +22,25 @@
 # THE SOFTWARE.
 ###############################################################################
 
+from multiprocessing import Pool
 
 from core.strategies import SchedulingStrategy
+
+
+alpha_cpu = alpha_mem = beta_cpu = beta_mem = None
+
+def _bfd_compute_item_size(item):
+    return (item.name, alpha_cpu*item.cpu + alpha_mem*item.mem)
+
+def _bfd_compute_bin_size(bin):
+    return (bin.name, beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc))
+
 
 class BFD(SchedulingStrategy):
 
     def initialize(self):
         coeficient = self._config.params['bfd_measure_coeficient_function']
+        self.processors_to_use = int(self._config.params['bfd_processors_to_use'])
         if coeficient == '1/C(j)':
             self.coeficient_function = frac_1_cj
         elif coeficient == '1/R(j)':
@@ -39,6 +51,8 @@ class BFD(SchedulingStrategy):
             raise 'Set bfd_measure_coeficient_function param with one of these values: 1/C(j), 1/R(j) or R(j)/C(j).'
 
     def compute_sizes(self, items, bins):
+        global alpha_cpu, alpha_mem, beta_cpu, beta_mem
+
         alpha = self.coeficient_function(items, bins)
         alpha_cpu, alpha_mem = alpha['cpu'], alpha['mem']
 
@@ -46,13 +60,20 @@ class BFD(SchedulingStrategy):
         beta_cpu, beta_mem = beta['cpu'], beta['mem']
 
         self.s_i = {}
-        for item in items:
-            self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
-
         self.s_b = {}
-        for bin in bins:
-            self.s_b[bin.name] = beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc)
 
+        with Pool(processes=self.processors_to_use) as pool:
+            # for item in items:
+            #     self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
+            item_values = pool.map(_bfd_compute_item_size, items)
+            for item_value in item_values:
+                self.s_i[item_value[0]] = item_value[1]
+
+            # for bin in bins:
+            #     self.s_b[bin.name] = beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc)
+            bin_values = pool.map(_bfd_compute_bin_size, bins)
+            for bin_value in bin_values:
+                self.s_b[bin_value[0]] = bin_value[1]
 
     def get_biggest_item(self, items):
         return max(items, key=lambda item: self.s_i[item.name])
