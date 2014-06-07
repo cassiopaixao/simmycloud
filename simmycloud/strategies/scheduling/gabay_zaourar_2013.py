@@ -27,16 +27,7 @@ from multiprocessing import Pool
 from core.strategies import SchedulingStrategy
 
 
-alpha_cpu = alpha_mem = beta_cpu = beta_mem = None
-
-def _bfd_compute_item_size(item):
-    return (item.name, alpha_cpu*item.cpu + alpha_mem*item.mem)
-
-def _bfd_compute_bin_size(bin):
-    return (bin.name, beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc))
-
-
-class BFD(SchedulingStrategy):
+class GabayZaourarAlgorithm(SchedulingStrategy):
 
     def initialize(self):
         coeficient = self._config.params['bfd_measure_coeficient_function']
@@ -65,13 +56,13 @@ class BFD(SchedulingStrategy):
         with Pool(processes=self.processors_to_use) as pool:
             # for item in items:
             #     self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
-            item_values = pool.map(_bfd_compute_item_size, items)
+            item_values = pool.map(_gabay_zaourar_compute_item_size, items)
             for item_value in item_values:
                 self.s_i[item_value[0]] = item_value[1]
 
             # for bin in bins:
             #     self.s_b[bin.name] = beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc)
-            bin_values = pool.map(_bfd_compute_bin_size, bins)
+            bin_values = pool.map(_gabay_zaourar_compute_bin_size, bins)
             for bin_value in bin_values:
                 self.s_b[bin_value[0]] = bin_value[1]
 
@@ -82,21 +73,25 @@ class BFD(SchedulingStrategy):
         return min(bins, key=lambda bin: self.s_b[bin.name])
 
     def get_smallest_feasible_bin(self, item, bins):
-        sorted_bins = sorted(bins, key=lambda bin: self.s_b[bin.name])
-        for bin in sorted_bins:
-            if fits(item, bin):
-                return bin
-        return None
+        feasible_bins = [bin for bin in bins if fits(item, bin)]
+        return min(feasible_bins, key=lambda bin: self.s_b[bin.name]) if len(feasible_bins) > 0 else None
+        # sorted_bins = sorted(bins, key=lambda bin: self.s_b[bin.name])
+        # for bin in sorted_bins:
+        #     if fits(item, bin):
+        #         return bin
+        # return None
 
     def get_biggest_feasible_item(self, items, bin):
-        sorted_items = sorted(items, key=lambda item: self.s_i[item.name], reverse=True)
-        for item in sorted_items:
-            if fits(item, bin):
-                return item
-        return None
+        feasible_items = [item for item in items if fits(item, bin)]
+        return max(feasible_items, key=lambda item: self.s_i[item.name]) if len(feasible_items) > 0 else None
+        # sorted_items = sorted(items, key=lambda item: self.s_i[item.name], reverse=True)
+        # for item in sorted_items:
+        #     if fits(item, bin):
+        #         return item
+        # return None
 
 
-class BFDItemCentric(BFD):
+class BFDItemCentric(GabayZaourarAlgorithm):
 
     @SchedulingStrategy.schedule_vms_strategy
     def schedule_vms(self, vms):
@@ -124,7 +119,7 @@ class BFDItemCentric(BFD):
             unpacked_items.remove(biggest_item)
 
 
-class BFDBinCentric(BFD):
+class BFDBinCentric(GabayZaourarAlgorithm):
 
     @SchedulingStrategy.schedule_vms_strategy
     def schedule_vms(self, vms):
@@ -180,3 +175,12 @@ def frac_rj_cj(items, bins):
     # (1/C(j))/(1/R(j)) = (1/C(j))*R(j) = R(j)/C(j)
     return {'cpu': frac_cj['cpu']/frac_rj['cpu'],
             'mem': frac_cj['mem']/frac_rj['mem']}
+
+
+alpha_cpu = alpha_mem = beta_cpu = beta_mem = None
+
+def _gabay_zaourar_compute_item_size(item):
+    return (item.name, alpha_cpu*item.cpu + alpha_mem*item.mem)
+
+def _gabay_zaourar_compute_bin_size(bin):
+    return (bin.name, beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc))
