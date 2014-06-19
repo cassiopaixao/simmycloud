@@ -45,12 +45,10 @@ class FirstFit(SchedulingStrategy):
         if server is not None:
             self._config.resource_manager.schedule_vm_at_server(vm, server.name)
 
-        return server
-
 
     def get_first_fit(self, vm, servers):
         for server in servers:
-            if server.cpu - server.cpu_alloc >= vm.cpu and \
-               server.mem - server.mem_alloc >= vm.mem:
+            if server.cpu_free >= vm.cpu and \
+               server.mem_free >= vm.mem:
                 return server
         return None
