@@ -146,10 +146,11 @@ class ConfigBuilder:
 
     @classmethod
     def _get_object(cls, classpath):
-        module_name = re.match('(.*)\.[^.]*', classpath).group(1)
-        class_name = re.match('[^.]*\.(.*)', classpath).group(1)
-        module = __import__(module_name)
-        obj = eval('module.{}()'.format(class_name))
+        module_name = re.match('([^.]*)\..+', classpath).group(1)
+        module_path = re.match('[^.]*\.(.*)\.[^.]+', classpath).group(1)
+        class_name = re.match('.*\.([^.]+)', classpath).group(1)
+        module = __import__('{}.{}'.format(module_name, module_path))
+        obj = eval('module.{}.{}()'.format(module_path, class_name))
         return obj
 
     @classmethod
