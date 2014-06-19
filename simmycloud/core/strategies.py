@@ -49,14 +49,14 @@ class SchedulingStrategy(Strategy):
             for vm in vms:
                 server = self._config.resource_manager.get_server_of_vm(vm.name)
                 if server is not None:
-                    self._config.getLogger(self).debug('VM %s was allocated to server %s',
+                    self._logger.debug('VM %s was allocated to server %s',
                                                        vm.name, server.name)
 
                 elif vm not in self._config.vms_pool.get_ordered_list() \
                         and 'migration' not in self._config.simulation_info.scope:
                     self._config.vms_pool.add_vm(vm, PendingVMsPool.LOW_PRIORITY)
                     self._config.statistics.notify_event('vms_added_to_pending')
-                    self._config.getLogger(self).debug('VM %s was added to pending', vm.name)
+                    self._logger.debug('VM %s was added to pending', vm.name)
 
             return
         return new_schedule_vms
@@ -89,18 +89,18 @@ class MigrationStrategy(Strategy):
                 if new_server is None:
                     self._config.vms_pool.add_vm(vm, PendingVMsPool.HIGH_PRIORITY)
                     self._config.statistics.notify_event('vms_paused')
-                    self._config.getLogger(self).debug('VM %s migration from server %s failed. Added to vms_pool with high priority.',
+                    self._logger.debug('VM %s migration from server %s failed. Added to vms_pool with high priority.',
                                                        vm.name,
                                                        self.__old_servers__[vm.name].name)
 
                 elif new_server == self.__old_servers__[vm.name]:
-                    self._config.getLogger(self).debug('VM %s not migrated. It keeps on server %s.',
+                    self._logger.debug('VM %s not migrated. It keeps on server %s.',
                                                        vm.name,
                                                        new_server.name)
 
                 elif new_server != self.__old_servers__[vm.name]:
                     self._config.statistics.notify_event('vms_migrated')
-                    self._config.getLogger(self).debug('VM %s migrated from server %s to server %s',
+                    self._logger.debug('VM %s migrated from server %s to server %s',
                                                        vm.name,
                                                        self.__old_servers__[vm.name].name,
                                                        new_server.name)
@@ -127,13 +127,13 @@ class PredictionStrategy(Strategy):
             vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
             new_demands = func(self, *args, **kwargs)
             if new_demands is not None:
-                self._config.getLogger(self).debug('Predicted demands for VM %s: %f, %f',
+                self._logger.debug('Predicted demands for VM %s: %f, %f',
                                                    vm.name,
-                                                   new_demands['cpu'],
-                                                   new_demands['mem'])
+                                                   new_demands.cpu,
+                                                   new_demands.cpu)
                 self._config.statistics.notify_event('new_demands')
             else:
-                self._config.getLogger(self).debug('No predicted demands for VM %s', vm.name)
+                self._logger.debug('No predicted demands for VM %s', vm.name)
             return new_demands
         return new_predict
 
@@ -159,7 +159,10 @@ class PoweringOffStrategy(Strategy):
 
     def power_off_if_necessary_strategy(func):
         def new_power_off_if_necessary(self, *args, **kwargs):
-            return func(self, *args, **kwargs)
+            powered_off_server = func(self, *args, **kwargs)
+            if powered_off_server is None:
+                self._logger.debug('Server turned off.')
+            return powered_off_server
         return new_power_off_if_necessary
 
     @power_off_if_necessary_strategy

@@ -42,11 +42,13 @@ class CloudSimulator:
             self._update_simulation_info(events[0])
             self._logger.debug('Processing %d events of type: %s', len(events), EventType.get_type(events[0].type))
             for event in events:
-                self._logger.debug('Processing event: %s', event.dump())
+                self._logger.debug('Will process event: %s', event.dump())
 
             self._config.simulation_info.scope.append(events[0].type)
+            self._logger.debug('Adding %s to scope.', events[0].type)
             self._process_events(events)
-            self._config.simulation_info.scope.pop()
+            removed_from_scope = self._config.simulation_info.scope.pop()
+            self._logger.debug('Removing %s from scope.', removed_from_scope)
 
     def _initialize(self):
         self._config.initialize()
