@@ -45,10 +45,10 @@ class GabayZaourarAlgorithm(SchedulingStrategy):
         global alpha_cpu, alpha_mem, beta_cpu, beta_mem
 
         alpha = self.coeficient_function(items, bins)
-        alpha_cpu, alpha_mem = alpha['cpu'], alpha['mem']
+        alpha_cpu, alpha_mem = alpha[0], alpha[1]
 
         beta = alpha
-        beta_cpu, beta_mem = beta['cpu'], beta['mem']
+        beta_cpu, beta_mem = beta[0], beta[1]
 
         self.s_i = {}
         self.s_b = {}
@@ -156,25 +156,24 @@ class BFDBinCentric(GabayZaourarAlgorithm):
 
 
 def fits(item, bin):
-    return bin.cpu - bin.cpu_alloc >= item.cpu and \
-           bin.mem - bin.mem_alloc >= item.mem
+    return bin.cpu_free >= item.cpu and bin.mem_free >= item.mem
 
 
 def frac_1_cj(items, bins):
-    return {'cpu': 1.0/max(sum([b.cpu - b.cpu_alloc for b in bins]), 0.000001),
-            'mem': 1.0/max(sum([b.mem - b.mem_alloc for b in bins]), 0.000001)}
+    return (1.0/max(sum([b.cpu - b.cpu_alloc for b in bins]), 0.0000000001),
+            1.0/max(sum([b.mem - b.mem_alloc for b in bins]), 0.0000000001))
 
 def frac_1_rj(items, bins):
-    return {'cpu': 1.0/max(sum([i.cpu for i in items]), 0.000001),
-            'mem': 1.0/max(sum([i.mem for i in items]), 0.000001)}
+    return (1.0/max(sum([i.cpu for i in items]), 0.0000000001),
+            1.0/max(sum([i.mem for i in items]), 0.0000000001))
 
 def frac_rj_cj(items, bins):
     frac_cj = frac_1_cj(items, bins)
     frac_rj = frac_1_rj(items, bins)
 
     # (1/C(j))/(1/R(j)) = (1/C(j))*R(j) = R(j)/C(j)
-    return {'cpu': frac_cj['cpu']/frac_rj['cpu'],
-            'mem': frac_cj['mem']/frac_rj['mem']}
+    return (frac_cj[0]/frac_rj[0],
+            frac_cj[1]/frac_rj[1])
 
 
 alpha_cpu = alpha_mem = beta_cpu = beta_mem = None
@@ -183,4 +182,4 @@ def _gabay_zaourar_compute_item_size(item):
     return (item.name, alpha_cpu*item.cpu + alpha_mem*item.mem)
 
 def _gabay_zaourar_compute_bin_size(bin):
-    return (bin.name, beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc))
+    return (bin.name, beta_cpu*bin.cpu_free + beta_mem*bin.mem_free)
