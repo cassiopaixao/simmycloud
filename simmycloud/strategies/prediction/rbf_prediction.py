@@ -36,13 +36,17 @@ class RBFPrediction(PredictionStrategy):
     @PredictionStrategy.predict_strategy
     def predict(self, vm):
         last_measurements = self._get_last(vm, self.rbf_window_size)
+        self._logger.debug('Prediction called for vm %s. Last measurements: [%s]',
+                            vm.name,
+                            ', '.join(['({},{})'.format(m['cpu'], m['mem']) for m in last_measurements]))
 
         if len(last_measurements) < self.rbf_window_size:
+            self._logger.debug('No prediction. %d measurements found.', len(last_measurements))
             return None
 
         new_demands = VirtualMachine('')
-        new_demands.cpu = self._prediction_for([m['cpu'] for m in last_measurements])
-        new_demands.mem = self._prediction_for([m['mem'] for m in last_measurements])
+        new_demands.cpu = min(self._prediction_for([m['cpu'] for m in last_measurements]), 1.0)
+        new_demands.mem = min(self._prediction_for([m['mem'] for m in last_measurements]), 1.0)
         return new_demands
 
     def _get_last(self, vm, window_size):
