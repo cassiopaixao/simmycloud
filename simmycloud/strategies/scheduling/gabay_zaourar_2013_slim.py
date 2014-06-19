@@ -47,12 +47,12 @@ class GabayZaourarSlimAlgorithm(SchedulingStrategy):
     def initialize_item_heap(self, items):
         self._item_heap = list()
         for item in items:
-            heapq.heappush(self._item_heap, (sys.float_info.max - self.s_i[item.name], item))
+            heapq.heappush(self._item_heap, (sys.float_info.max - self.s_i[item.name], len(self._item_heap), item))
 
     def initialize_bin_heap(self, bins):
         self._bin_heap = list()
         for bin in bins:
-            heapq.heappush(self._bin_heap, (self.s_b[bin.name], bin))
+            heapq.heappush(self._bin_heap, (self.s_b[bin.name], len(self._bin_heap), bin))
 
     def compute_sizes(self, items, bins):
         global alpha_cpu, alpha_mem, beta_cpu, beta_mem
@@ -84,10 +84,10 @@ class GabayZaourarSlimAlgorithm(SchedulingStrategy):
 
 
     def get_biggest_item(self):
-        return heapq.heappop(self._item_heap)
+        return heapq.heappop(self._item_heap)[2] if len(self._item_heap) > 0 else None
 
     def get_smallest_bin(self):
-        return heapq.heappop(self._bin_heap)
+        return heapq.heappop(self._bin_heap)[2] if len(self._bin_heap) > 0 else None
 
     def get_smallest_feasible_bin(self, item, bins):
         feasible_bins = (bin for bin in bins if fits(item, bin))
