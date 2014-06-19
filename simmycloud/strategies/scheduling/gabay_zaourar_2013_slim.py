@@ -51,7 +51,7 @@ class GabayZaourarSlimAlgorithm(SchedulingStrategy):
     def initialize_bin_heap(self, bins):
         self._bin_heap = list()
         for bin in bins:
-            heapq.heappush(self._bin_heap, (self.s_i[bin.name], bin))
+            heapq.heappush(self._bin_heap, (self.s_b[bin.name], bin))
 
     def compute_sizes(self, items, bins):
         global alpha_cpu, alpha_mem, beta_cpu, beta_mem
@@ -114,10 +114,10 @@ class BFDItemCentricSlim(GabayZaourarSlimAlgorithm):
     @SchedulingStrategy.schedule_vms_strategy
     def schedule_vms(self, vms):
         unpacked_items = list(vms)
-        self.initialize_item_heap(unpacked_items)
 
         self.compute_sizes(unpacked_items,
                            self._config.resource_manager.all_servers())
+        self.initialize_item_heap(unpacked_items)
 
         while len(unpacked_items) > 0:
             biggest_item = self.get_biggest_item()
