@@ -34,6 +34,7 @@ class GabayZaourarSlimAlgorithm(SchedulingStrategy):
     def initialize(self):
         coeficient = self._config.params['bfd_measure_coeficient_function']
         self.processors_to_use = int(self._config.params['bfd_processors_to_use'])
+        self.parallel_serial_threshold = int(self._config.params['bfd_parallel_serial_threshold'])
         if coeficient == '1/C(j)':
             self.coeficient_function = frac_1_cj
         elif coeficient == '1/R(j)':

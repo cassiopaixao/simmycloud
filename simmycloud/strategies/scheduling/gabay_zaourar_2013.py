@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 ###############################################################################
 
+import heapq
 from multiprocessing import Pool
 
 from core.strategies import SchedulingStrategy
@@ -32,6 +33,7 @@ class GabayZaourarAlgorithm(SchedulingStrategy):
     def initialize(self):
         coeficient = self._config.params['bfd_measure_coeficient_function']
         self.processors_to_use = int(self._config.params['bfd_processors_to_use'])
+        self.parallel_serial_threshold = int(self._config.params['bfd_parallel_serial_threshold'])
         if coeficient == '1/C(j)':
             self.coeficient_function = frac_1_cj
         elif coeficient == '1/R(j)':
@@ -40,6 +42,14 @@ class GabayZaourarAlgorithm(SchedulingStrategy):
             self.coeficient_function = frac_rj_cj
         else:
             raise 'Set bfd_measure_coeficient_function param with one of these values: 1/C(j), 1/R(j) or R(j)/C(j).'
+
+    def initialize_item_heap(self, items):
+        self.item_heap = list()
+        for item in items:
+            heapq.heappush(self.item_heap, (self.s_i[item.name], item))
+
+    def update_item_heap(self):
+        self.item_heap = heapq.heapfy(self.item_heap)
 
     def compute_sizes(self, items, bins):
         global alpha_cpu, alpha_mem, beta_cpu, beta_mem
