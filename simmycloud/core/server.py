@@ -32,22 +32,30 @@ class Server:
 		self.vm_dict = {}
 		self.cpu_alloc = 0.0
 		self.mem_alloc = 0.0
+		self.cpu_free = cpu
+		self.mem_free = mem
 
 	def schedule_vm(self, vm):
 		self.vm_dict[vm.name] = vm
 		self.cpu_alloc += vm.cpu
 		self.mem_alloc += vm.mem
+		self.cpu_free -= vm.cpu
+		self.mem_free -= vm.mem
 
 	def free_vm(self, vm):
 		vm = self.vm_dict.pop(vm.name)
 		self.cpu_alloc -= vm.cpu
 		self.mem_alloc -= vm.mem
+		self.cpu_free += vm.cpu
+		self.mem_free += vm.mem
 		return vm
 
 	def update_vm(self, vm):
 		vm_allocated = self.vm_dict[vm.name]
 		self.cpu_alloc += vm.cpu - vm_allocated.cpu
 		self.mem_alloc += vm.mem - vm_allocated.mem
+		self.cpu_free += vm_allocated.cpu - vm.cpu
+		self.mem_free += vm_allocated.mem - vm.mem
 		vm_allocated.cpu = vm.cpu
 		vm_allocated.mem = vm.mem
 		return vm_allocated
@@ -56,7 +64,7 @@ class Server:
 		return self.vm_dict.values()
 
 	def is_overloaded(self):
-		return (self.cpu_alloc > self.cpu or self.mem_alloc > self.mem)
+		return (self.cpu_free < 0.0 or self.mem_free < 0.0)
 
 	def describe(self):
 		return '{} ({}, {})'.format(self.name,
@@ -66,9 +74,11 @@ class Server:
 
 	def dump(self):
 		return '{} ({}/{}, {}/{}), {}'.format(self.name,
-                                              self.cpu_alloc,
                                               self.cpu,
-                                              self.mem_alloc,
+                                              self.cpu_alloc,
+                                              self.cpu_free,
                                               self.mem,
+                                              self.mem_alloc,
+                                              self.mem_free,
                                               ' '.join([vm.dump() for vm in self.vm_dict.values()])
                                               )
