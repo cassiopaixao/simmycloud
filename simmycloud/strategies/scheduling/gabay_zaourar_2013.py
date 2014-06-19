@@ -53,42 +53,48 @@ class GabayZaourarAlgorithm(SchedulingStrategy):
         self.s_i = {}
         self.s_b = {}
 
-        with Pool(processes=self.processors_to_use) as pool:
-            # for item in items:
-            #     self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
-            item_values = pool.map(_gabay_zaourar_compute_item_size, items)
-            for item_value in item_values:
-                self.s_i[item_value[0]] = item_value[1]
+        if len(bins) + len(items) > self.parallel_serial_threshold:
+            with Pool(processes=self.processors_to_use) as pool:
+                item_values = pool.map(_gabay_zaourar_compute_item_size, items)
+                for item_value in item_values:
+                    self.s_i[item_value[0]] = item_value[1]
 
-            # for bin in bins:
-            #     self.s_b[bin.name] = beta_cpu*(bin.cpu - bin.cpu_alloc) + beta_mem*(bin.mem - bin.mem_alloc)
-            bin_values = pool.map(_gabay_zaourar_compute_bin_size, bins)
-            for bin_value in bin_values:
-                self.s_b[bin_value[0]] = bin_value[1]
+                bin_values = pool.map(_gabay_zaourar_compute_bin_size, bins)
+                for bin_value in bin_values:
+                    self.s_b[bin_value[0]] = bin_value[1]
+        else:
+            for item in items:
+                self.s_i[item.name] = alpha_cpu*item.cpu + alpha_mem*item.mem
+
+            for bin in bins:
+                self.s_b[bin.name] = beta_cpu*bin.cpu_free + beta_mem*bin.mem_free
+
 
     def get_biggest_item(self, items):
-        return max(items, key=lambda item: self.s_i[item.name])
+        return max(items, key=self.size_of_item)
 
     def get_smallest_bin(self, bins):
-        return min(bins, key=lambda bin: self.s_b[bin.name])
+        return min(bins, key=self.size_of_bin)
 
     def get_smallest_feasible_bin(self, item, bins):
-        feasible_bins = [bin for bin in bins if fits(item, bin)]
-        return min(feasible_bins, key=lambda bin: self.s_b[bin.name]) if len(feasible_bins) > 0 else None
-        # sorted_bins = sorted(bins, key=lambda bin: self.s_b[bin.name])
-        # for bin in sorted_bins:
-        #     if fits(item, bin):
-        #         return bin
-        # return None
+        feasible_bins = (bin for bin in bins if fits(item, bin))
+        try:
+            return min(feasible_bins, key=self.size_of_bin)
+        except ValueError:
+            return None
 
     def get_biggest_feasible_item(self, items, bin):
-        feasible_items = [item for item in items if fits(item, bin)]
-        return max(feasible_items, key=lambda item: self.s_i[item.name]) if len(feasible_items) > 0 else None
-        # sorted_items = sorted(items, key=lambda item: self.s_i[item.name], reverse=True)
-        # for item in sorted_items:
-        #     if fits(item, bin):
-        #         return item
-        # return None
+        feasible_items = (item for item in items if fits(item, bin))
+        try:
+            return max(feasible_items, key=self.size_of_item)
+        except ValueError:
+            return None
+
+    def size_of_bin(self, bin):
+        return self.s_b[bin.name]
+
+    def size_of_item(self, item):
+        return self.s_i[item.name]
 
 
 class BFDItemCentric(GabayZaourarAlgorithm):
