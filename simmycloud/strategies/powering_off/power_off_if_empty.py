@@ -28,8 +28,8 @@ from core.strategies import PoweringOffStrategy
 class PowerOffIfEmpty(PoweringOffStrategy):
 
     @PoweringOffStrategy.power_off_if_necessary_strategy
-    def power_off_if_necessary(self, server):
-        if len(server.vm_list()) == 0:
-            self._config.resource_manager.turn_off_server(server.name)
-            return None
-        return server
+    def power_off_if_necessary(self, servers=[]):
+        servers = servers if len(servers) > 0 else self._config.resource_manager.online_servers()
+        for server in servers:
+            if server.is_empty():
+                self._config.resource_manager.turn_off_server(server.name)

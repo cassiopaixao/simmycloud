@@ -159,12 +159,19 @@ class PoweringOffStrategy(Strategy):
 
     def power_off_if_necessary_strategy(func):
         def new_power_off_if_necessary(self, *args, **kwargs):
-            powered_off_server = func(self, *args, **kwargs)
-            if powered_off_server is None:
-                self._logger.debug('Server turned off.')
-            return powered_off_server
+            servers_list = [arg for arg in args if isinstance(arg, list)]
+            servers_list = servers_list[0] if len(servers_list) > 0 else None
+            if servers_list:
+                self._logger.debug('Verifying servers that should be powered off: [%s]', ' '.join(s.name for s in servers_list))
+            else:
+                self._logger.debug('Verifying all servers that should be powered off.')
+            func(self, *args, **kwargs)
         return new_power_off_if_necessary
 
+    """ Returned value will not be used. Method should power off all servers
+        that have to be powered off. The 'servers' argument can have one or
+        more servers that had been someway updated (e.g. VMs resources were
+        updated or freed. """
     @power_off_if_necessary_strategy
-    def power_off_if_necessary(self, server):
+    def power_off_if_necessary(self, servers=[]):
         raise NotImplementedError

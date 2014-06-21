@@ -80,8 +80,10 @@ class CloudSimulator:
                 self._config.resource_manager.update_vm_demands(event.vm)
 
         elif events_type == EventType.FINISH:
+            updated_servers = []
             for event in events:
                 if self._config.resource_manager.is_it_time_to_finish_vm(event.vm):
+                    updated_servers.append(self._config.resource_manager.get_server_of_vm(event.vm.name))
                     self._config.statistics.notify_event('finish_events')
                     self._config.resource_manager.free_vm_resources(event.vm)
                     self._config.statistics.notify_event('vm_finished',
@@ -91,7 +93,7 @@ class CloudSimulator:
                         self._config.module['MeasurementReader'].free_cache_for_vm(event.vm.name)
                 else:
                     self._config.statistics.notify_event('outdated_finish_events')
-            self._verify_machines_to_turn_off()
+            self._verify_machines_to_turn_off(updated_servers)
 
         elif events_type == EventType.NOTIFY:
             for event in events:
@@ -176,10 +178,8 @@ class CloudSimulator:
             if self._config.resource_manager.get_server_of_vm(vm.name) is not None:
                 self._config.vms_pool.remove(vm)
 
-    def _verify_machines_to_turn_off(self):
-        online_servers = list(self._config.resource_manager.online_servers())
-        for i in range(len(online_servers)):
-            self._config.strategies.powering_off.power_off_if_necessary(online_servers[i])
+    def _verify_machines_to_turn_off(self, servers=[]):
+        self._config.strategies.powering_off.power_off_if_necessary(servers)
 
 
 class SimulationInfo:
