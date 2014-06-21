@@ -30,11 +30,11 @@ class MigrateIfOverload(MigrationStrategy):
     @MigrationStrategy.list_of_vms_to_migrate_strategy
     def list_of_vms_to_migrate(self, list_of_online_servers):
         vms_to_migrate = list()
-        overloaded_servers = self._config.module['MeasurementReader'].overloaded_servers()
+        overloaded_servers = (s for s in self._config.resource_manager.online_servers() if s.is_overloaded())
         for server in overloaded_servers:
-            vms = sorted(server.vm_list(), key=lambda vm: vm.cpu + vm.mem)
-            cpu_exceeded = server.cpu_alloc - server.cpu
-            mem_exceeded = server.mem_alloc - server.mem
+            vms = sorted(server.vm_list(), key=self.size_of_vm)
+            cpu_exceeded = -server.cpu_free
+            mem_exceeded = -server.mem_free
             for vm in vms:
                 cpu_exceeded = cpu_exceeded - vm.cpu
                 mem_exceeded = mem_exceeded - vm.mem
@@ -46,3 +46,6 @@ class MigrateIfOverload(MigrationStrategy):
     @MigrationStrategy.migrate_vms_strategy
     def migrate_vms(self, vms):
         self._config.strategies.scheduling.schedule_vms(vms)
+
+    def size_of_vm(self, vm):
+        return vm.cpu + vm.mem
