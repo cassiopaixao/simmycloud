@@ -63,6 +63,9 @@ class Server:
 	def vm_list(self):
 		return self.vm_dict.values()
 
+	def is_empty(self):
+		return len(self.vm_dict) == 0
+
 	def is_overloaded(self):
 		return (self.cpu_free < 0.0 or self.mem_free < 0.0)
 
