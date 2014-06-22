@@ -181,7 +181,7 @@ class GroupManager:
             except KeyError: return
 
         destination_group = self.destination_group_merging(a, b)
-        item_sets_to_merge = floor(a.item_sets/2) if a is b else min(len(a.item_sets), len(b.item_sets))
+        item_sets_to_merge = floor(len(a.item_sets)/2) if a is b else min(len(a.item_sets), len(b.item_sets))
 
         merged_item_sets = []
         for i in range(item_sets_to_merge):
