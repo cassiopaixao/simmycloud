@@ -23,7 +23,7 @@
 ###############################################################################
 
 from operator import attrgetter
-from math import ceil
+from math import ceil, floor
 from collections import defaultdict
 
 from core.strategies import SchedulingStrategy
@@ -176,14 +176,21 @@ class GroupManager:
         removes the merged item_sets and adds the merged ones to
         respective group """
     def merge(self, a, b):
-        if a is b: return
+        if a is b:
+            try: self.destination_group_merging(a, b)
+            except KeyError: return
+
         destination_group = self.destination_group_merging(a, b)
-        item_sets_to_merge = min(len(a.item_sets), len(b.item_sets))
+        item_sets_to_merge = floor(a.item_sets/2) if a is b else min(len(a.item_sets), len(b.item_sets))
+
+        merged_item_sets = []
         for i in range(item_sets_to_merge):
             a_item_set = a.item_sets.pop()
             b_item_set = b.item_sets.pop()
             a_item_set.extend(b_item_set)
-            destination_group.add_item_set(a_item_set)
+            merged_item_sets.append(a_item_set)
+
+        destination_group.add_item_sets(merged_item_sets)
 
     def destination_group_merging(self, a, b):
         return self.group(a.cpu_class + b.cpu_class, a.mem_class + b.mem_class)
