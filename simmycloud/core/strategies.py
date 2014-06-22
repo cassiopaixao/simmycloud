@@ -173,5 +173,5 @@ class PoweringOffStrategy(Strategy):
         more servers that had been someway updated (e.g. VMs resources were
         updated or freed. """
     @power_off_if_necessary_strategy
-    def power_off_if_necessary(self, servers=[]):
+    def power_off_if_necessary(self, servers=None):
         raise NotImplementedError
