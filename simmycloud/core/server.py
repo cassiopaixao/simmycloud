@@ -83,5 +83,5 @@ class Server:
                                               self.mem,
                                               self.mem_alloc,
                                               self.mem_free,
-                                              ' '.join([vm.dump() for vm in self.vm_dict.values()])
+                                              ' '.join(vm.dump() for vm in self.vm_dict.values())
                                               )

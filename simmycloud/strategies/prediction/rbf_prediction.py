@@ -38,15 +38,15 @@ class RBFPrediction(PredictionStrategy):
         last_measurements = self._get_last(vm_name, self.rbf_window_size)
         self._logger.debug('Prediction called for vm %s. Last measurements: [%s]',
                             vm_name,
-                            ', '.join(['({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in last_measurements]))
+                            ', '.join('({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in last_measurements))
 
         if len(last_measurements) < self.rbf_window_size:
             self._logger.debug('No prediction. %d measurements found.', len(last_measurements))
             return None
 
         new_demands = VirtualMachine('')
-        new_demands.cpu = min(self._prediction_for([m[self.measurement_reader.CPU] for m in last_measurements]), 1.0)
-        new_demands.mem = min(self._prediction_for([m[self.measurement_reader.MEM] for m in last_measurements]), 1.0)
+        new_demands.cpu = min(self._prediction_for(m[self.measurement_reader.CPU] for m in last_measurements), 1.0)
+        new_demands.mem = min(self._prediction_for(m[self.measurement_reader.MEM] for m in last_measurements), 1.0)
         return new_demands
 
     def _get_last(self, vm_name, window_size):
@@ -61,5 +61,5 @@ class RBFPrediction(PredictionStrategy):
         except Exception as e:
             self._config.getLogger(self).debug('RBF exception error: %s', e)
             self._config.getLogger(self).debug('RBF exception values: [%s]',
-                                               ', '.join([str(v) for v in values]))
+                                               ', '.join(str(v) for v in values))
             return float(sum(values)) / len(values)

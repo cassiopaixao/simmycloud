@@ -37,7 +37,7 @@ class OnlineServersField(StatisticsField):
 class TightedVMsField(StatisticsField):
     def value(self):
         overloaded_servers = self._config.module['MeasurementReader'].overloaded_servers()
-        return sum([len(s.vm_list()) for s in overloaded_servers])
+        return sum(len(s.vm_list()) for s in overloaded_servers)
 
 
 class OverloadedServersField(StatisticsField):
@@ -59,9 +59,9 @@ class VMsInPoolField(StatisticsField):
 class ServersTotalResidualCapacityField(StatisticsField):
     def value(self):
         def residual_capacity(s):
-            return math.sqrt(math.pow(s.cpu - s.cpu_alloc, 2) + math.pow(s.mem - s.mem_alloc, 2))
+            return math.sqrt(math.pow(s.cpu_free, 2) + math.pow(s.mem_free, 2))
         online_servers = self._config.resource_manager.online_servers()
-        return math.fsum([residual_capacity(server) for server in online_servers])
+        return math.fsum(residual_capacity(server) for server in online_servers)
 
 
 class ServerResidualCapacityPercentageField(StatisticsField):
@@ -70,8 +70,7 @@ class ServerResidualCapacityPercentageField(StatisticsField):
         self._server_capacity_magnitude = self._mag(server.cpu, server.mem)
 
     def value(self):
-        return self._mag(self.server.cpu - self.server.cpu_alloc,
-                         self.server.mem - self.server.mem_alloc) / self._server_capacity_magnitude
+        return self._mag(self.server.cpu_free, self.server.mem_free) / self._server_capacity_magnitude
 
     def _mag(self, x, y):
         return math.sqrt(math.pow(x, 2) + math.pow(y, 2))

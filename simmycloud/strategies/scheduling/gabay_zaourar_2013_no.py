@@ -146,17 +146,17 @@ class BFDBinCentric(GabayZaourarAlgorithm):
 
 
 def fits(item, bin):
-    return bin.cpu - bin.cpu_alloc >= item.cpu and \
-           bin.mem - bin.mem_alloc >= item.mem
+    return bin.cpu_free >= item.cpu and \
+           bin.mem_free >= item.mem
 
 
 def frac_1_cj(items, bins):
-    return {'cpu': 1.0/max(sum([b.cpu - b.cpu_alloc for b in bins]), 0.000001),
-            'mem': 1.0/max(sum([b.mem - b.mem_alloc for b in bins]), 0.000001)}
+    return {'cpu': 1.0/max(sum(b.cpu_free for b in bins), 0.000001),
+            'mem': 1.0/max(sum(b.mem_free for b in bins), 0.000001)}
 
 def frac_1_rj(items, bins):
-    return {'cpu': 1.0/max(sum([i.cpu for i in items]), 0.000001),
-            'mem': 1.0/max(sum([i.mem for i in items]), 0.000001)}
+    return {'cpu': 1.0/max(sum(i.cpu for i in items), 0.000001),
+            'mem': 1.0/max(sum(i.mem for i in items), 0.000001)}
 
 def frac_rj_cj(items, bins):
     frac_cj = frac_1_cj(items, bins)
