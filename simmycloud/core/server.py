@@ -76,7 +76,7 @@ class Server:
 									)
 
 	def dump(self):
-		return '{} ({}/{}, {}/{}), {}'.format(self.name,
+		return '{} ({}/{}+{}, {}/{}+{}), {}'.format(self.name,
                                               self.cpu,
                                               self.cpu_alloc,
                                               self.cpu_free,
