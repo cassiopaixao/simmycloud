@@ -97,6 +97,7 @@ class ResourceManager:
         if server is not None:
             self._logger.debug('Updating VM demands in server %s: %s', server.describe(), vm.dump())
             server.update_vm(vm)
+            self._logger.debug('Updated VM demands in server %s: %s', server.describe(), vm.dump())
         self._logger.debug('Updating VM demands in pending pool: %s', vm.dump())
         self._vm_status[vm.name].update(vm)
 

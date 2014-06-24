@@ -25,6 +25,7 @@
 
 from core.vms_pool import PendingVMsPool
 from core.virtual_machine import VirtualMachine
+import logging
 
 class Strategy:
     def set_config(self, config):
@@ -76,12 +77,23 @@ class MigrationStrategy(Strategy):
             self.__old_servers__ = dict()
             for vm in vms_to_migrate:
                 self.__old_servers__[vm.name] = self._config.resource_manager.get_server_of_vm(vm.name)
+                self._logger.debug('Should migrate VM %s. It is on server %s',
+                                   vm.name,
+                                   self.__old_servers__[vm.name].dump())
             return vms_to_migrate
         return new_list_of_vms_to_migrate
 
     def migrate_vms_strategy(func):
         def new_migrate_vms(self, *args, **kwargs):
             vms = [arg for arg in args if isinstance(arg, list)][0]
+
+            if self._logger.level <= logging.DEBUG:
+                for vm in vms:
+                    self.__old_servers__[vm.name] = self._config.resource_manager.get_server_of_vm(vm.name)
+                    self._logger.debug('Should migrate VM %s. It was on server %s',
+                                       vm.name,
+                                       self.__old_servers__[vm.name].dump())
+
             func(self, *args, **kwargs)
 
             for vm in vms:
@@ -130,7 +142,7 @@ class PredictionStrategy(Strategy):
                 self._logger.debug('Predicted demands for VM %s: %f, %f',
                                                    vm.name,
                                                    new_demands.cpu,
-                                                   new_demands.cpu)
+                                                   new_demands.mem)
                 self._config.statistics.notify_event('new_demands')
             else:
                 self._logger.debug('No predicted demands for VM %s', vm.name)
