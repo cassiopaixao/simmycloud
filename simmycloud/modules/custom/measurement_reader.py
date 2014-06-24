@@ -79,8 +79,8 @@ class MeasurementReader(SimulationModule):
 
         if overloaded_servers and self._logger.level <= logging.DEBUG:
             for s in overloaded_servers:
-                cpu_use = fsum(self.current_measurement(vm.name)[MeasurementReader.CPU] for vm in s.vm_list)
-                mem_use = fsum(self.current_measurement(vm.name)[MeasurementReader.MEM] for vm in s.vm_list)
+                cpu_use = fsum(self.current_measurement(vm.name)[MeasurementReader.CPU] for vm in s.vm_list())
+                mem_use = fsum(self.current_measurement(vm.name)[MeasurementReader.MEM] for vm in s.vm_list())
                 self._logger.debug('Server %s is overloaded. Measured: %f, %f',
                                     s.dump(), cpu_use, mem_use)
         else:
@@ -101,7 +101,8 @@ class CachedMeasurement:
         self._config = config
 
     def measurements_interval(self, vm_name, from_time, till_time):
-        if vm_name not in self._measurements:
+        if vm_name not in self._measurements or \
+           self._measurements[vm_name][-1][MeasurementReader.TIME] < till_time:
             self._caches_measurements(vm_name, from_time, till_time)
 
         from_time = from_time - self._interval_time
@@ -112,7 +113,8 @@ class CachedMeasurement:
                             vm_allocation_data.submit_mem_demand,
                             vm_allocation_data.submit_time
                         )]
-        measurements.extend(m for m in self._measurements[vm_name] if m[MeasurementReader.TIME] > from_time and m[MeasurementReader.TIME] <= till_time)
+        if vm_name in self._measurements:
+            measurements.extend(m for m in self._measurements[vm_name] if m[MeasurementReader.TIME] > from_time and m[MeasurementReader.TIME] <= till_time)
 
         return measurements
 
@@ -146,6 +148,8 @@ class CachedMeasurement:
             opened_file.close()
 
         self._measurements[vm_name] = measurements
+
+        if not measurements: del self._measurements[vm_name]
 
     def free_measurements_of_vm(self, vm_name):
         self._measurements.pop(vm_name, None)

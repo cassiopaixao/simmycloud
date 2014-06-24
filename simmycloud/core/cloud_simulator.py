@@ -113,7 +113,7 @@ class CloudSimulator:
         if event.type == EventType.TIME_TO_PREDICT:
             for server in self._config.resource_manager.online_servers():
                 for vm in server.vm_list():
-                    prediction = strategies.prediction.predict(vm)
+                    prediction = strategies.prediction.predict(vm.name)
                     if prediction is not None:
                         self._config.events_queue.add_event(
                             EventBuilder.build_update_event(self._config.simulation_info.current_timestamp,

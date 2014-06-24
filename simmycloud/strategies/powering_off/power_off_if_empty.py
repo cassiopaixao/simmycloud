@@ -30,7 +30,7 @@ class PowerOffIfEmpty(PoweringOffStrategy):
     @PoweringOffStrategy.power_off_if_necessary_strategy
     def power_off_if_necessary(self, servers=None):
         if not servers:
-            servers = self._config.resource_manager.online_servers()
+            servers = list(self._config.resource_manager.online_servers())
         for server in servers:
             if server.is_empty():
                 self._config.resource_manager.turn_off_server(server.name)

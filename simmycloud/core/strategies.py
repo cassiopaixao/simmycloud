@@ -89,7 +89,6 @@ class MigrationStrategy(Strategy):
 
             if self._logger.level <= logging.DEBUG:
                 for vm in vms:
-                    self.__old_servers__[vm.name] = self._config.resource_manager.get_server_of_vm(vm.name)
                     self._logger.debug('Should migrate VM %s. It was on server %s',
                                        vm.name,
                                        self.__old_servers__[vm.name].dump())
@@ -136,16 +135,16 @@ class PredictionStrategy(Strategy):
 
     def predict_strategy(func):
         def new_predict(self, *args, **kwargs):
-            vm = [arg for arg in args if isinstance(arg, VirtualMachine)][0]
+            vm_name = [arg for arg in args if isinstance(arg, str)][0]
             new_demands = func(self, *args, **kwargs)
             if new_demands is not None:
                 self._logger.debug('Predicted demands for VM %s: %f, %f',
-                                                   vm.name,
+                                                   vm_name,
                                                    new_demands.cpu,
                                                    new_demands.mem)
                 self._config.statistics.notify_event('new_demands')
             else:
-                self._logger.debug('No predicted demands for VM %s', vm.name)
+                self._logger.debug('No predicted demands for VM %s', vm_name)
             return new_demands
         return new_predict
 
@@ -157,7 +156,7 @@ class PredictionStrategy(Strategy):
     """ Returns a new VirtualMachine with the predicted demand.
         Or None if no change should be made. """
     @predict_strategy
-    def predict(self, vm):
+    def predict(self, vm_name):
         raise NotImplementedError
 
     """ Returns the next prediction interval. If you don't override this

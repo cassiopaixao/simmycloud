@@ -34,24 +34,24 @@ class RBFPrediction(PredictionStrategy):
         self.rbf_window_size = int(self._config.params['rbf_time_series_prediction_window_size'])
 
     @PredictionStrategy.predict_strategy
-    def predict(self, vm):
-        last_measurements = self._get_last(vm, self.rbf_window_size)
+    def predict(self, vm_name):
+        last_measurements = self._get_last(vm_name, self.rbf_window_size)
         self._logger.debug('Prediction called for vm %s. Last measurements: [%s]',
-                            vm.name,
-                            ', '.join(['({},{})'.format(m['cpu'], m['mem']) for m in last_measurements]))
+                            vm_name,
+                            ', '.join(['({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in last_measurements]))
 
         if len(last_measurements) < self.rbf_window_size:
             self._logger.debug('No prediction. %d measurements found.', len(last_measurements))
             return None
 
         new_demands = VirtualMachine('')
-        new_demands.cpu = min(self._prediction_for([m['cpu'] for m in last_measurements]), 1.0)
-        new_demands.mem = min(self._prediction_for([m['mem'] for m in last_measurements]), 1.0)
+        new_demands.cpu = min(self._prediction_for([m[self.measurement_reader.CPU] for m in last_measurements]), 1.0)
+        new_demands.mem = min(self._prediction_for([m[self.measurement_reader.MEM] for m in last_measurements]), 1.0)
         return new_demands
 
-    def _get_last(self, vm, window_size):
+    def _get_last(self, vm_name, window_size):
         return self.measurement_reader.n_measurements_till(
-            vm.name,
+            vm_name,
             window_size,
             self._config.simulation_info.current_timestamp)
 
