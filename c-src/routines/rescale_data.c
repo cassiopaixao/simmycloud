@@ -43,8 +43,8 @@ void rescale_data(double *x,unsigned long l,double *min,double *interval)
       x[i]=(x[i]- *min)/ *interval;
   }
   else {
-    fprintf(stderr,"rescale_data: data ranges from %e to %e. It makes\n"
-	    "\t\tno sense to continue. Exiting!\n\n",*min,*min+(*interval));
-    exit(RESCALE_DATA_ZERO_INTERVAL);
+    char *m  = PyOS_double_to_string(*min,             'r', 0, Py_DTSF_ADD_DOT_0, NULL);
+    char *mi = PyOS_double_to_string(*min + *interval, 'r', 0, Py_DTSF_ADD_DOT_0, NULL);
+    PyErr_Format(PyExc_RuntimeError, "rescale_data: data ranges from %s to %s. It makes no sense to continue.",m,mi);
   }
 }

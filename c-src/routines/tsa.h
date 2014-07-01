@@ -96,7 +96,7 @@ extern unsigned long rnd69069();
 extern double gaussian(double);
 
 /* routines from eigen.c */
-extern void eigen(double**,unsigned long,double*);
+// extern void eigen(double**,unsigned long,double*);
 
 #ifdef __cplusplus
 }

@@ -38,8 +38,7 @@ void variance(double *s,unsigned long l,double *av,double *var)
   *av /= (double)l;
   *var=sqrt(fabs((*var)/(double)l-(*av)*(*av)));
   if (*var == 0.0) {
-    fprintf(stderr,"Variance of the data is zero. Exiting!\n\n");
-    exit(VARIANCE_VAR_EQ_ZERO);
+    PyErr_SetString(PyExc_RuntimeError, "Variance of the data is zero.");
   }
 }
 

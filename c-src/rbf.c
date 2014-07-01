@@ -25,7 +25,6 @@
 #include <limits.h>
 #include "routines/tsa.h"
 #include <math.h>
-#include <Python.h>
 
 #define WID_STR "Fits a RBF-model to the data"
 
@@ -156,6 +155,9 @@ void make_fit(void)
   }
 
   solvele(mat,coefs,(unsigned int)(CENTER+1));
+  if(PyErr_Occurred()) {
+    return;
+  }
 
   for (i=0;i<=CENTER;i++)
     PyMem_RawFree(mat[i]);
@@ -231,7 +233,6 @@ predict(PyObject *self, PyObject *args)
   MAKECAST = 1; CLENGTH = 1;
 
   seq = PySequence_Fast(tuple, "argument must be a list or tuple");
-
   if(!seq)
     return NULL;
 
@@ -247,7 +248,14 @@ predict(PyObject *self, PyObject *args)
   Py_DECREF(seq);
 
   rescale_data(series,LENGTH,&min,&interval);
+  if(PyErr_Occurred()) {
+    return NULL;
+  }
+
   variance(series,LENGTH,&av,&varianz);
+  if(PyErr_Occurred()) {
+    return NULL;
+  }
 
   if (INSAMPLE > LENGTH)
     INSAMPLE=LENGTH;
@@ -270,6 +278,7 @@ predict(PyObject *self, PyObject *args)
 
   if (setdrift)
     drift();
+
   varianz=avdistance();
   make_fit();
 
@@ -361,6 +370,9 @@ predict(PyObject *self, PyObject *args)
     PyMem_RawFree(cast);
 
     prediction = new_el*interval+min;
+    if(PyErr_Occurred()) {
+      return NULL;
+    }
   }
 
   for (i=0;i<CENTER;i++)

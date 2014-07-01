@@ -24,6 +24,8 @@
    the exception, secondly, sort of an description of the exception.
    */
 
+#include <Python.h>
+
 #ifndef _TISEAN_CEC_H
 #define _TISEAN_CEC_H
 

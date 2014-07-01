@@ -48,8 +48,8 @@ void solvele(double **mat,double *vec,unsigned int n)
     hvec=mat[i];
     pivot=hvec[i];
     if (fabs(pivot) == 0.0) {
-      fprintf(stderr,"Singular matrix! Exiting!\n");
-      exit(SOLVELE_SINGULAR_MATRIX);
+      PyErr_SetString(PyExc_RuntimeError, "Singular matrix! Exiting!\n");
+      return;
     }
     for (j=i+1;j<n;j++) {
       q= -mat[j][i]/pivot;
