@@ -54,3 +54,8 @@ a = [0.00176,
 0.001759]
 
 print(rbf.predict(a))
+
+a = [0.0] * 50
+print(rbf.predict(a))
+
+
