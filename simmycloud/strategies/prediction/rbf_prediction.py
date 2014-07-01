@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 ###############################################################################
 
+import logging
 
 from core.virtual_machine import VirtualMachine
 from core.strategies import PredictionStrategy
@@ -36,18 +37,16 @@ class RBFPrediction(PredictionStrategy):
     @PredictionStrategy.predict_strategy
     def predict(self, vm_name):
         last_measurements = self._get_last(vm_name, self.rbf_window_size)
-        self._logger.debug('Prediction called for vm %s. Last measurements: [%s]',
-                            vm_name,
-                            ', '.join('({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in last_measurements))
+        if self._logger.level <= logging.DEBUG:
+            self._logger.debug('Prediction called for vm %s. Last measurements: [%s]',
+                                vm_name,
+                                ', '.join('({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in last_measurements))
 
         if len(last_measurements) < self.rbf_window_size:
             self._logger.debug('No prediction. %d measurements found.', len(last_measurements))
             return None
 
-        new_demands = VirtualMachine('')
-        new_demands.cpu = min(self._prediction_for(m[self.measurement_reader.CPU] for m in last_measurements), 1.0)
-        new_demands.mem = min(self._prediction_for(m[self.measurement_reader.MEM] for m in last_measurements), 1.0)
-        return new_demands
+        return self._new_demands(last_measurements)
 
     def _get_last(self, vm_name, window_size):
         return self.measurement_reader.n_measurements_till(
@@ -55,11 +54,16 @@ class RBFPrediction(PredictionStrategy):
             window_size,
             self._config.simulation_info.current_timestamp)
 
-    def _prediction_for(self, values):
+    def _new_demands(self, measurements):
         try:
-            return self.rbf_prediction.predict(values)
+            new_demands = VirtualMachine('')
+            new_demands.cpu = min(  self.rbf_prediction.predict(m[self.measurement_reader.CPU] for m in measurements),
+                                    1.0)
+            new_demands.mem = min(  self.rbf_prediction.predict(m[self.measurement_reader.MEM] for m in measurements),
+                                    1.0)
+            return new_demands
         except Exception as e:
-            self._config.getLogger(self).debug('RBF exception error: %s', e)
-            self._config.getLogger(self).debug('RBF exception values: [%s]',
-                                               ', '.join(str(v) for v in values))
-            return float(sum(values)) / len(values)
+            self._logger.info('RBF exception error: %s', e)
+            self._logger.info('RBF exception values: [%s]',
+                                               ', '.join('({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in measurements))
+            return None
