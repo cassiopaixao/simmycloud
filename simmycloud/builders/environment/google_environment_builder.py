@@ -22,6 +22,8 @@
 # THE SOFTWARE.
 ###############################################################################
 
+from decimal import Decimal
+
 from core.resource_manager import EnvironmentBuilder
 from core.server import Server
 
@@ -31,13 +33,30 @@ class GoogleEnvironmentBuilder(EnvironmentBuilder):
     # Charles Reiss, Alexey Tumanov, Gregory R. Ganger, Randy H. Katz, Machael A. Kozuch
     @staticmethod
     def build(resource_manager):
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.50), 6732)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.25), 3863)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.75), 1001)
-        resource_manager.add_servers_of_type(Server('', 1.00, 1.00), 795)
-        resource_manager.add_servers_of_type(Server('', 0.25, 0.25), 126)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.12), 52)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.03), 5)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.97), 5)
-        resource_manager.add_servers_of_type(Server('', 1.00, 0.50), 3)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.06), 1)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.50')), 6732)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.25')), 3863)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.75')), 1001)
+        resource_manager.add_servers_of_type(Server('', Decimal('1.00'), Decimal('1.00')), 795)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.25'), Decimal('0.25')), 126)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.12')), 52)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.03')), 5)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.97')), 5)
+        resource_manager.add_servers_of_type(Server('', Decimal('1.00'), Decimal('0.50')), 3)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.06')), 1)
+
+class MiniGoogleEnvironmentBuilder(EnvironmentBuilder):
+
+    # Heterogeneity and Dynamicity of Clouds at Scale: Google Trace Analysis
+    # Charles Reiss, Alexey Tumanov, Gregory R. Ganger, Randy H. Katz, Machael A. Kozuch
+    @staticmethod
+    def build(resource_manager):
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.50')), 673)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.25')), 386)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.75')), 100)
+        resource_manager.add_servers_of_type(Server('', Decimal('1.00'), Decimal('1.00')), 79)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.25'), Decimal('0.25')), 12)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.12')), 5)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.03')), 1)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.97')), 1)
+        resource_manager.add_servers_of_type(Server('', Decimal('1.00'), Decimal('0.50')), 1)
+        resource_manager.add_servers_of_type(Server('', Decimal('0.50'), Decimal('0.06')), 1)

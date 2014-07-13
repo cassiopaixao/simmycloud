@@ -25,6 +25,7 @@
 from operator import attrgetter
 from math import ceil, floor
 from collections import defaultdict
+from decimal import Decimal
 
 from core.strategies import SchedulingStrategy
 
@@ -45,8 +46,8 @@ class GroupingVSVBP(SchedulingStrategy):
         if not vms or not servers:
             return vms
 
-        max_cpu = max(max(servers, key=attrgetter('cpu_free')).cpu_free, 0.0000000001)
-        max_mem = max(max(servers, key=attrgetter('mem_free')).mem_free, 0.0000000001)
+        max_cpu = max(max(servers, key=attrgetter('cpu_free')).cpu_free, Decimal('0.0000000001'))
+        max_mem = max(max(servers, key=attrgetter('mem_free')).mem_free, Decimal('0.0000000001'))
 
         self.map_servers_to_groups(servers, max_cpu, max_mem)
         self.map_vms_to_groups(vms, max_cpu, max_mem)
@@ -56,11 +57,12 @@ class GroupingVSVBP(SchedulingStrategy):
         for resource_class in reversed(range(1, self.classifications+1)):
             self._logger.debug('Will try to schedule vms_sets at resource_class %d', resource_class)
             servers_of_resource_class = self.servers_of_resource_class(resource_class)
-            item_sets = self.vms_groups.item_sets_of_resource_class(resource_class)
-            while item_sets:
+            while 1:
+                item_sets = self.vms_groups.item_sets_of_resource_class(resource_class)
+                if not item_sets: break;
                 scheduled_sets = self.schedule_item_sets_at_servers(item_sets, servers_of_resource_class, turn_on_servers)
                 self._logger.debug('Scheduled %d item_sets', len(scheduled_sets))
-                if len(scheduled_sets) == 0: break
+                if not scheduled_sets: break
                 # self._logger.debug( 'Scheduled sets to be removed at resource_class %i: %s',
                 #                     resource_class,
                 #                     ' '.join(i.dump() for i in scheduled_sets))
@@ -126,9 +128,15 @@ class GroupingVSVBP(SchedulingStrategy):
 
     def map_servers_to_groups(self, servers, max_cpu, max_mem):
         self.servers_groups = defaultdict(list)
-        cpu_coef = self.classifications / max_cpu
-        mem_coef = self.classifications / max_mem
+        cpu_coef = Decimal(self.classifications / max_cpu)
+        mem_coef = Decimal(self.classifications / max_mem)
+        self._logger.debug('cpu,mem max: %.4f, %.4f', max_cpu, max_mem)
+        self._logger.debug('cpu,mem coef: %.4f, %.4f', cpu_coef, mem_coef)
         for s in servers:
+            self._logger.debug('Server %s (cap: %.4f,%.4f; free: %.04f,%.4f)',
+                s.name,
+                s.cpu, s.mem,
+                s.cpu_free, s.mem_free)
             resource_class = self.valid_resource_class(max( ceil(s.cpu_free*cpu_coef),
                                                             ceil(s.mem_free*mem_coef)))
             self.servers_groups[resource_class].append(s)
@@ -138,8 +146,8 @@ class GroupingVSVBP(SchedulingStrategy):
 
     def map_vms_to_groups(self, vms, max_cpu, max_mem):
         self.vms_groups = GroupManager(self.classifications)
-        cpu_coef = self.classifications / max_cpu
-        mem_coef = self.classifications / max_mem
+        cpu_coef = Decimal(self.classifications / max_cpu)
+        mem_coef = Decimal(self.classifications / max_mem)
         for vm in vms:
             g = self.vms_groups.group(  self.valid_resource_class(ceil(vm.cpu*cpu_coef)),
                                         self.valid_resource_class(ceil(vm.mem*mem_coef)))

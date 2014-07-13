@@ -22,10 +22,9 @@
 # THE SOFTWARE.
 ###############################################################################
 
-
 class VirtualMachine:
 
-    def __init__(self, name, cpu=0.0, mem=0.0):
+    def __init__(self, name, cpu, mem):
         self.name = name
         self.cpu = cpu
         self.mem = mem

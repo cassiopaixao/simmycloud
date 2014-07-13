@@ -27,6 +27,7 @@ import re
 import fileinput
 import os.path
 from math import fsum
+from decimal import Decimal
 import logging
 
 from core.simulation_module import SimulationModule
@@ -141,7 +142,7 @@ class CachedMeasurement:
                 if int(start_time) > till_time: break
 
                 # (cpu, mem, start_time)
-                measurements.append( (float(cpu), float(mem), int(start_time)) )
+                measurements.append( (Decimal(cpu), Decimal(mem), int(start_time)) )
 
                 line = opened_file.readline()
 

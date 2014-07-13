@@ -34,11 +34,9 @@ class LastFiveMeasurementsPrediction(PredictionStrategy):
     @PredictionStrategy.predict_strategy
     def predict(self, vm_name):
         last_five = self._get_last_five(vm_name)
-        cpu_average = float(sum(m[self.measurement_reader.CPU] for m in last_five)) / len(last_five)
-        mem_average = float(sum(m[self.measurement_reader.CPU] for m in last_five)) / len(last_five)
-        new_demands = VirtualMachine('')
-        new_demands.cpu = cpu_average
-        new_demands.mem = mem_average
+        cpu_average = sum(m[self.measurement_reader.CPU] for m in last_five) / len(last_five)
+        mem_average = sum(m[self.measurement_reader.CPU] for m in last_five) / len(last_five)
+        new_demands = VirtualMachine('', cpu_average, mem_average)
         return new_demands
 
     def _get_last_five(self, vm_name):

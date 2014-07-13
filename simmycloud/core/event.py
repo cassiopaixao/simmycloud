@@ -28,6 +28,7 @@ import fileinput
 import re
 import heapq
 from collections import defaultdict, deque
+from decimal import Decimal
 
 from core.virtual_machine import VirtualMachine
 
@@ -55,11 +56,11 @@ class EventType:
 
 class Event:
 
-    def __init__(self, event_type, time=0, vm_name='', cpu=0.0, mem=0.0, process_time=0, message=''):
+    def __init__(self, event_type, time=0, vm_name='', cpu=None, mem=None, process_time=0, message=''):
         self.type = event_type
         self.time = time
         self.process_time = process_time
-        self.vm = VirtualMachine(vm_name, cpu, mem)
+        self.vm = VirtualMachine(vm_name, (cpu or Decimal(0)), (mem or Decimal(0)))
         self.message = message
 
     def dump(self):
@@ -83,8 +84,8 @@ class EventBuilder:
         return Event(EventType.SUBMIT,
                      time=int(data[0] if data[0] else 0),
                      vm_name=data[1],
-                     cpu=float(data[2] if data[2] else 0),
-                     mem=float(data[3] if data[3] else 0),
+                     cpu=Decimal(data[2] if data[2] else 0),
+                     mem=Decimal(data[3] if data[3] else 0),
                      process_time=int(data[4] if data[4] else 0)
             )
 
@@ -93,8 +94,8 @@ class EventBuilder:
         return Event(EventType.UPDATE,
                      time=timestamp,
                      vm_name=vm_name,
-                     cpu=float(cpu),
-                     mem=float(mem)
+                     cpu=Decimal(cpu),
+                     mem=Decimal(mem)
             )
 
     @staticmethod

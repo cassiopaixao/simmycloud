@@ -24,6 +24,7 @@
 
 import heapq
 from multiprocessing import Pool
+from decimal import Decimal
 
 from core.strategies import SchedulingStrategy
 
@@ -175,13 +176,16 @@ def fits(item, bin):
     return bin.cpu_free >= item.cpu and bin.mem_free >= item.mem
 
 
+gabay_zaourar_min_divisor = Decimal('0.0000000001')
+gabay_zaourar_one = Decimal('1')
+
 def frac_1_cj(items, bins):
-    return (1.0/max(sum(b.cpu_free for b in bins), 0.0000000001),
-            1.0/max(sum(b.mem_free for b in bins), 0.0000000001))
+    return (gabay_zaourar_one/max(sum(b.cpu_free for b in bins), gabay_zaourar_min_divisor),
+            gabay_zaourar_one/max(sum(b.mem_free for b in bins), gabay_zaourar_min_divisor))
 
 def frac_1_rj(items, bins):
-    return (1.0/max(sum(i.cpu for i in items), 0.0000000001),
-            1.0/max(sum(i.mem for i in items), 0.0000000001))
+    return (gabay_zaourar_one/max(sum(i.cpu for i in items), gabay_zaourar_min_divisor),
+            gabay_zaourar_one/max(sum(i.mem for i in items), gabay_zaourar_min_divisor))
 
 def frac_rj_cj(items, bins):
     frac_cj = frac_1_cj(items, bins)
