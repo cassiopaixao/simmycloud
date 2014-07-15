@@ -42,19 +42,13 @@ class GoogleEnvironmentBuilder(EnvironmentBuilder):
         resource_manager.add_servers_of_type(Server('', 1.00, 0.50), 3)
         resource_manager.add_servers_of_type(Server('', 0.50, 0.06), 1)
 
+# 5% of GoogleEnvironment
 class MiniGoogleEnvironmentBuilder(EnvironmentBuilder):
-
-    # Heterogeneity and Dynamicity of Clouds at Scale: Google Trace Analysis
-    # Charles Reiss, Alexey Tumanov, Gregory R. Ganger, Randy H. Katz, Machael A. Kozuch
     @staticmethod
     def build(resource_manager):
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.50), 673)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.25), 386)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.75), 100)
-        resource_manager.add_servers_of_type(Server('', 1.00, 1.00), 79)
-        resource_manager.add_servers_of_type(Server('', 0.25, 0.25), 12)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.12), 5)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.03), 1)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.97), 1)
-        resource_manager.add_servers_of_type(Server('', 1.00, 0.50), 1)
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.06), 1)
+        resource_manager.add_servers_of_type(Server('', 0.50, 0.50), 336)
+        resource_manager.add_servers_of_type(Server('', 0.50, 0.25), 193)
+        resource_manager.add_servers_of_type(Server('', 0.50, 0.75), 50)
+        resource_manager.add_servers_of_type(Server('', 1.00, 1.00), 40)
+        resource_manager.add_servers_of_type(Server('', 0.25, 0.25), 6)
+        resource_manager.add_servers_of_type(Server('', 0.50, 0.12), 3)
