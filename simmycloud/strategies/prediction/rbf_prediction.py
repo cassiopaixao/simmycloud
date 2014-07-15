@@ -23,6 +23,7 @@
 ###############################################################################
 
 import logging
+import math
 
 from core.virtual_machine import VirtualMachine
 from core.strategies import PredictionStrategy
@@ -56,8 +57,11 @@ class RBFPrediction(PredictionStrategy):
 
     def _new_demands(self, measurements):
         try:
-            new_cpu = min(self.rbf_prediction.predict(m[self.measurement_reader.CPU] for m in measurements), 1)
-            new_mem = min(self.rbf_prediction.predict(m[self.measurement_reader.MEM] for m in measurements), 1)
+            new_cpu = max(min(self.rbf_prediction.predict(m[self.measurement_reader.CPU] for m in measurements), 1), 0)
+            new_mem = max(min(self.rbf_prediction.predict(m[self.measurement_reader.MEM] for m in measurements), 1), 0)
+
+            if math.isnan(new_cpu) or math.isnan(new_mem):
+                raise Exception('NaN at prediction: cpu( {} ) mem( {} )'.format(new_cpu, new_mem))
 
             new_demands = VirtualMachine('', new_cpu, new_mem)
             return new_demands
