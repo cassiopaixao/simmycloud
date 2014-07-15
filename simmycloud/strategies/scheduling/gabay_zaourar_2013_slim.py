@@ -25,7 +25,6 @@
 import heapq
 import sys
 from multiprocessing import Pool
-from decimal import Decimal
 
 from core.strategies import SchedulingStrategy
 
@@ -48,7 +47,7 @@ class GabayZaourarSlimAlgorithm(SchedulingStrategy):
     def initialize_item_heap(self, items):
         self._item_heap = list()
         for item in items:
-            heapq.heappush(self._item_heap, (Decimal(sys.float_info.max) - self.s_i[item.name], len(self._item_heap), item))
+            heapq.heappush(self._item_heap, (sys.float_info.max - self.s_i[item.name], len(self._item_heap), item))
 
     def initialize_bin_heap(self, bins):
         self._bin_heap = list()
@@ -177,8 +176,8 @@ class BFDBinCentricSlim(GabayZaourarSlimAlgorithm):
 def fits(item, bin):
     return bin.cpu_free >= item.cpu and bin.mem_free >= item.mem
 
-gabay_zaourar_slim_min_divisor = Decimal('0.0000000001')
-gabay_zaourar_slim_one = Decimal('1')
+gabay_zaourar_slim_min_divisor = 0.0000000001
+gabay_zaourar_slim_one = 1.0
 
 def frac_1_cj(items, bins):
     return (gabay_zaourar_slim_one/max(sum(b.cpu_free for b in bins), gabay_zaourar_slim_min_divisor),

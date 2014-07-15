@@ -27,7 +27,6 @@ import re
 import fileinput
 import os.path
 from math import fsum
-from decimal import Decimal
 import logging
 
 from core.simulation_module import SimulationModule
@@ -73,8 +72,8 @@ class MeasurementReader(SimulationModule):
             free_cpu, free_mem = server.cpu, server.mem
             for vm in server.vm_list():
                 measurement = self.current_measurement(vm.name)
-                free_cpu = free_cpu - measurement[MeasurementReader.CPU]
-                free_mem = free_mem - measurement[MeasurementReader.MEM]
+                free_cpu -= measurement[MeasurementReader.CPU]
+                free_mem -= measurement[MeasurementReader.MEM]
             if free_cpu < 0 or free_mem < 0:
                 overloaded_servers.append(server)
 
@@ -142,7 +141,7 @@ class CachedMeasurement:
                 if int(start_time) > till_time: break
 
                 # (cpu, mem, start_time)
-                measurements.append( (Decimal(cpu), Decimal(mem), int(start_time)) )
+                measurements.append( (float(cpu), float(mem), int(start_time)) )
 
                 line = opened_file.readline()
 

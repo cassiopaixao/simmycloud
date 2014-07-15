@@ -25,7 +25,6 @@
 from operator import attrgetter
 from math import ceil, floor
 from collections import defaultdict
-from decimal import Decimal
 
 from core.strategies import SchedulingStrategy
 
@@ -46,8 +45,8 @@ class GroupingVSVBP(SchedulingStrategy):
         if not vms or not servers:
             return vms
 
-        max_cpu = max(max(servers, key=attrgetter('cpu_free')).cpu_free, Decimal('0.0000000001'))
-        max_mem = max(max(servers, key=attrgetter('mem_free')).mem_free, Decimal('0.0000000001'))
+        max_cpu = max(max(servers, key=attrgetter('cpu_free')).cpu_free, 0.0000000001)
+        max_mem = max(max(servers, key=attrgetter('mem_free')).mem_free, 0.0000000001)
 
         self.map_servers_to_groups(servers, max_cpu, max_mem)
         self.map_vms_to_groups(vms, max_cpu, max_mem)
@@ -128,8 +127,8 @@ class GroupingVSVBP(SchedulingStrategy):
 
     def map_servers_to_groups(self, servers, max_cpu, max_mem):
         self.servers_groups = defaultdict(list)
-        cpu_coef = Decimal(self.classifications / max_cpu)
-        mem_coef = Decimal(self.classifications / max_mem)
+        cpu_coef = self.classifications / max_cpu
+        mem_coef = self.classifications / max_mem
         self._logger.debug('cpu,mem max: %.4f, %.4f', max_cpu, max_mem)
         self._logger.debug('cpu,mem coef: %.4f, %.4f', cpu_coef, mem_coef)
         for s in servers:
@@ -146,8 +145,8 @@ class GroupingVSVBP(SchedulingStrategy):
 
     def map_vms_to_groups(self, vms, max_cpu, max_mem):
         self.vms_groups = GroupManager(self.classifications)
-        cpu_coef = Decimal(self.classifications / max_cpu)
-        mem_coef = Decimal(self.classifications / max_mem)
+        cpu_coef = self.classifications / max_cpu
+        mem_coef = self.classifications / max_mem
         for vm in vms:
             g = self.vms_groups.group(  self.valid_resource_class(ceil(vm.cpu*cpu_coef)),
                                         self.valid_resource_class(ceil(vm.mem*mem_coef)))
@@ -282,8 +281,8 @@ class ItemSet:
 
     def extend(self, other_item_set):
         self.items.extend(other_item_set.items)
-        self.cpu = self.cpu + other_item_set.cpu
-        self.mem = self.mem + other_item_set.mem
+        self.cpu += other_item_set.cpu
+        self.mem += other_item_set.mem
 
     def dump(self):
         return 'ItemSet({}, {}): {}'.format(self.cpu,

@@ -22,19 +22,16 @@
 # THE SOFTWARE.
 ###############################################################################
 
-from decimal import Decimal
 
 class Server:
 
-	def __init__(self, name, cpu=None, mem=None):
+	def __init__(self, name, cpu=0.0, mem=0.0):
 		self.name = name
-		if isinstance(cpu, float) or isinstance(mem, float):
-			raise Exception('É float!!')
-		self.cpu = cpu or Decimal(0)
-		self.mem = mem or Decimal(0)
+		self.cpu = cpu
+		self.mem = mem
 		self.vm_dict = {}
-		self.cpu_alloc = Decimal(0)
-		self.mem_alloc = Decimal(0)
+		self.cpu_alloc = 0.0
+		self.mem_alloc = 0.0
 		self.cpu_free = self.cpu
 		self.mem_free = self.mem
 
@@ -70,8 +67,7 @@ class Server:
 		return len(self.vm_dict) == 0
 
 	def is_overloaded(self):
-		# Decimal#is_signed() returns True if value is negative
-		return (self.cpu_free.is_signed() or self.mem_free.is_signed())
+		return (self.cpu_free < 0 or self.mem_free < 0)
 
 	def describe(self):
 		return '{} ({}, {})'.format(self.name,

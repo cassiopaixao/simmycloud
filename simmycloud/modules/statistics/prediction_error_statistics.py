@@ -22,8 +22,6 @@
 # THE SOFTWARE.
 ###############################################################################
 
-from decimal import Decimal
-
 from core.statistics_manager import StatisticsModule
 from statistics_fields.prediction_fields import AverageAbsolutePredictionErrorField, StdevAbsolutePredictionErrorField, AveragePercentilePredictionErrorField, StdevPercentilePredictionErrorField
 
@@ -36,7 +34,7 @@ class PredictionErrorStatistics(StatisticsModule):
         self._out = None
         self._fields = []
         self.prediction_base = []
-        self._min_measurement = Decimal('0.0000000001')
+        self._min_measurement = 0.0000000001
 
     def initialize(self):
         self._next_control_time = int(self._config.params['first_prediction_time'])

@@ -23,7 +23,6 @@
 ###############################################################################
 
 from core.statistics_manager import StatisticsField
-from decimal import Decimal
 
 class VMNameField(StatisticsField):
     def value(self, vm):
@@ -34,7 +33,7 @@ class VMStretchField(StatisticsField):
         current_timestamp = self._config.simulation_info.current_timestamp
         submit_timestamp = self._config.resource_manager.get_vm_allocation_data(vm.name).submit_time
         requested_processing_time = self._config.resource_manager.get_vm_allocation_data(vm.name).process_time
-        return Decimal(current_timestamp - submit_timestamp) / requested_processing_time
+        return float(current_timestamp - submit_timestamp) / requested_processing_time
 
 class VMSubmitTimestampField(StatisticsField):
     def value(self, vm):

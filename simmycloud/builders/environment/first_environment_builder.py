@@ -22,8 +22,6 @@
 # THE SOFTWARE.
 ###############################################################################
 
-from decimal import Decimal
-
 from core.resource_manager import EnvironmentBuilder
 from core.server import Server
 
@@ -31,5 +29,5 @@ class FirstEnvironmentBuilder(EnvironmentBuilder):
 
     @staticmethod
     def build(resource_manager):
-        resource_manager.add_servers_of_type(Server('', Decimal('1.0'), Decimal('1.0')))
-        resource_manager.add_servers_of_type(Server('', Decimal('0.5'), Decimal('0.5')))
+        resource_manager.add_servers_of_type(Server('', 1.0, 1.0))
+        resource_manager.add_servers_of_type(Server('', 0.5, 0.5))

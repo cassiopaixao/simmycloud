@@ -23,7 +23,6 @@
 ###############################################################################
 
 import logging
-from decimal import Decimal
 
 from core.virtual_machine import VirtualMachine
 from core.strategies import PredictionStrategy
@@ -57,10 +56,10 @@ class RBFPrediction(PredictionStrategy):
 
     def _new_demands(self, measurements):
         try:
-            new_cpu = min(self.rbf_prediction.predict(float(m[self.measurement_reader.CPU]) for m in measurements), 1)
-            new_mem = min(self.rbf_prediction.predict(float(m[self.measurement_reader.MEM]) for m in measurements), 1)
+            new_cpu = min(self.rbf_prediction.predict(m[self.measurement_reader.CPU] for m in measurements), 1)
+            new_mem = min(self.rbf_prediction.predict(m[self.measurement_reader.MEM] for m in measurements), 1)
 
-            new_demands = VirtualMachine('', Decimal(new_cpu), Decimal(new_mem))
+            new_demands = VirtualMachine('', new_cpu, new_mem)
             return new_demands
         except Exception as e:
             self._logger.info('RBF exception error: %s', e)

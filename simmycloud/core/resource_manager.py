@@ -22,8 +22,6 @@
 # THE SOFTWARE.
 ###############################################################################
 
-from decimal import Decimal
-
 from core.server import Server
 from core.event import EventBuilder
 
