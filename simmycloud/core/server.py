@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 ###############################################################################
 
+import math
 
 class Server:
 
@@ -36,21 +37,26 @@ class Server:
 		self.mem_free = self.mem
 
 	def schedule_vm(self, vm):
+		# self.before_update()
 		self.vm_dict[vm.name] = vm
 		self.cpu_alloc += vm.cpu
 		self.mem_alloc += vm.mem
 		self.cpu_free -= vm.cpu
 		self.mem_free -= vm.mem
+		# self.after_update('schedule_vm', vm)
 
 	def free_vm(self, vm):
+		# self.before_update()
 		vm = self.vm_dict.pop(vm.name)
 		self.cpu_alloc -= vm.cpu
 		self.mem_alloc -= vm.mem
 		self.cpu_free += vm.cpu
 		self.mem_free += vm.mem
+		# self.after_update('free_vm', vm)
 		return vm
 
 	def update_vm(self, vm):
+		# self.before_update()
 		vm_allocated = self.vm_dict[vm.name]
 		self.cpu_alloc += vm.cpu - vm_allocated.cpu
 		self.mem_alloc += vm.mem - vm_allocated.mem
@@ -58,6 +64,7 @@ class Server:
 		self.mem_free += vm_allocated.mem - vm.mem
 		vm_allocated.cpu = vm.cpu
 		vm_allocated.mem = vm.mem
+		# self.after_update('update_vm', vm)
 		return vm_allocated
 
 	def vm_list(self):
@@ -85,3 +92,19 @@ class Server:
                                               self.mem_free,
                                               ' '.join(vm.dump() for vm in self.vm_dict.values())
                                               )
+
+	# def before_update(self):
+	# 	self.previous = "{}, alloc:({}, {}), free:({}, {})".format(
+	# 		self.describe(),
+	# 		self.cpu_alloc, self.mem_alloc,
+	# 		self.cpu_free, self.mem_free)
+
+	# def after_update(self, action, vm):
+	# 	if math.isnan(self.cpu_alloc) or math.isnan(self.mem_alloc) or math.isnan(self.cpu_free) or math.isnan(self.mem_free):
+	# 	 	print("deu NaN no {}".format(action))
+	# 	 	print("VM: {}".format(vm.dump()))
+	# 	 	print("previous: {}".format(self.previous))
+	# 	 	print("now: {}, alloc:({}, {}), free:({}, {})".format(
+	# 			self.describe(),
+	# 			self.cpu_alloc, self.mem_alloc,
+	# 			self.cpu_free, self.mem_free))
