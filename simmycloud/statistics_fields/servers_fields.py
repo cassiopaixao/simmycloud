@@ -55,6 +55,14 @@ class VMsInPoolField(StatisticsField):
     def value(self):
         return len(self._config.vms_pool.get_ordered_list())
 
+class HighPriorityVMsInPoolField(StatisticsField):
+    def value(self):
+        return len(self._config.vms_pool.get_high_priority_vms())
+
+class LowPriorityVMsInPoolField(StatisticsField):
+    def value(self):
+        return len(self._config.vms_pool.get_low_priority_vms())
+
 
 class ServersTotalResidualCapacityField(StatisticsField):
     def value(self):

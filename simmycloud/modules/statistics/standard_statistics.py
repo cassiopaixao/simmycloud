@@ -27,7 +27,7 @@ from collections import defaultdict
 from core.statistics_manager import StatisticsModule
 
 from statistics_fields.base_fields import CounterField, EnvironmentField, PredictionStrategyField, MigrationStrategyField, PoweringOffStrategyField, SchedulingStrategyField, TimeIntervalSinceLastStatisticsField
-from statistics_fields.servers_fields import OnlineServersField, OverloadedServersField, TightedVMsField, VMsInPoolField, ServersTotalResidualCapacityField
+from statistics_fields.servers_fields import OnlineServersField, OverloadedServersField, TightedVMsField, VMsInPoolField, HighPriorityVMsInPoolField, LowPriorityVMsInPoolField, ServersTotalResidualCapacityField
 
 class StandardStatistics(StatisticsModule):
     CSV_SEPARATOR = ','
@@ -114,6 +114,8 @@ class StandardStatistics(StatisticsModule):
         self._add_field(OverloadedServersField('overloaded_servers'))
         self._add_field(CounterField('vms_migrated'))
         self._add_field(VMsInPoolField('vms_in_pool'))
+        self._add_field(HighPriorityVMsInPoolField('high_priority_vms_in_pool'))
+        self._add_field(LowPriorityVMsInPoolField('low_priority_vms_in_pool'))
         self._add_field(ServersTotalResidualCapacityField('online_residual_capacity'))
         self._add_field(CounterField('submit_events'))
         self._add_field(CounterField('update_events'))
