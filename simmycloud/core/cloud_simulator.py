@@ -54,13 +54,15 @@ class CloudSimulator:
         self._config.initialize()
         self._logger = self._config.getLogger(self)
         self._add_prediction_time(int(self._config.params['first_prediction_time']))
+        self._add_vms_pool_verification_time(int(self._config.params['vms_pool_first_verification']))
+        self._vms_pool_verification_interval = int(self._config.params['vms_pool_verification_interval'])
         self._add_simulation_started_event()
 
     def _process_events(self, events):
         strategies = self._config.strategies
         events_type = events[0].type
 
-        if events_type in [EventType.TIME_TO_PREDICT, EventType.UPDATES_FINISHED]:
+        if events_type in [EventType.TIME_TO_PREDICT, EventType.UPDATES_FINISHED, EventType.VERIFY_VMS_POOL]:
             if len(events) > 1:
                 self._logger.warning('There should be only one event of type %s. %d found.',
                                      EventType.get_type(events[0].type), len(events))
@@ -131,8 +133,10 @@ class CloudSimulator:
                 self._config.resource_manager.free_vm_resources(vm)
             strategies.migration.migrate_vms(should_migrate)
             self._config.simulation_info.scope.pop()
-            self._try_to_allocate_vms_in_pool()
             self._verify_machines_to_turn_off()
+
+        elif event.type == EventType.VERIFY_VMS_POOL:
+            self._try_to_allocate_vms_in_pool()
 
         else:
             self._logger.error('Unknown event: %s'.format(event.dump()))
@@ -177,6 +181,11 @@ class CloudSimulator:
         for vm in vms:
             if self._config.resource_manager.get_server_of_vm(vm.name) is not None:
                 self._config.vms_pool.remove(vm)
+
+        self._add_vms_pool_verification_time(self._config.simulation_info.current_timestamp + self._vms_pool_verification_interval)
+
+    def _add_vms_pool_verification_time(self, timestamp):
+        self._config.events_queue.add_event(EventBuilder.build_verify_vms_pool_event(timestamp))
 
     def _verify_machines_to_turn_off(self, servers=None):
         self._config.strategies.powering_off.power_off_if_necessary(servers)

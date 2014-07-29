@@ -38,16 +38,18 @@ class EventType:
     FINISH = 3
     NOTIFY = 4
     UPDATES_FINISHED = 5
-    TIME_TO_PREDICT = 6
+    VERIFY_VMS_POOL = 6
+    TIME_TO_PREDICT = 7
 
     @staticmethod
     def get_type(type_number):
-        if type_number in range(1,7):
+        if type_number in range(1,8):
             types = ['', 'SUBMIT',
                          'UPDATE',
                          'FINISH',
                          'NOTIFY',
                          'UPDATES_FINISHED',
+                         'VERIFY_VMS_POOL',
                          'TIME_TO_PREDICT']
             return types[type_number]
         return 'UNKNOWN'
@@ -114,6 +116,12 @@ class EventBuilder:
     @staticmethod
     def build_updates_finished_event(timestamp):
         return Event(EventType.UPDATES_FINISHED,
+                     time=timestamp
+            )
+
+    @staticmethod
+    def build_verify_vms_pool_event(timestamp):
+        return Event(EventType.VERIFY_VMS_POOL,
                      time=timestamp
             )
 
@@ -227,6 +235,7 @@ class EventsQueue:
                     EventType.FINISH,
                     EventType.UPDATE,
                     EventType.UPDATES_FINISHED,
+                    EventType.VERIFY_VMS_POOL,
                     EventType.SUBMIT,
                     EventType.UNKNOWN
                     ]
