@@ -67,6 +67,7 @@ class RBFPrediction(PredictionStrategy):
             return new_demands
         except Exception as e:
             self._logger.info('RBF exception error: %s', e)
-            self._logger.info('RBF exception values: [%s]',
-                                               ', '.join('({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in measurements))
+            if self._logger.level <= logging.DEBUG:
+                self._logger.debug( 'RBF exception values: [%s]',
+                                    ', '.join('({},{})'.format(m[self.measurement_reader.CPU], m[self.measurement_reader.MEM]) for m in measurements))
             return None
