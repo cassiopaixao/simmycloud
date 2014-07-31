@@ -24,7 +24,6 @@
 
 
 from core.vms_pool import PendingVMsPool
-from core.virtual_machine import VirtualMachine
 import logging
 
 class Strategy:
@@ -140,8 +139,8 @@ class PredictionStrategy(Strategy):
             if new_demands is not None:
                 self._logger.debug('Predicted demands for VM %s: %f, %f',
                                                    vm_name,
-                                                   new_demands.cpu,
-                                                   new_demands.mem)
+                                                   new_demands[0],
+                                                   new_demands[1])
                 self._config.statistics.notify_event('new_demands')
             else:
                 self._logger.debug('No predicted demands for VM %s', vm_name)

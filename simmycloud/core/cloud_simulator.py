@@ -120,8 +120,8 @@ class CloudSimulator:
                         self._config.events_queue.add_event(
                             EventBuilder.build_update_event(self._config.simulation_info.current_timestamp,
                                                             vm.name,
-                                                            prediction.cpu,
-                                                            prediction.mem))
+                                                            prediction[0],
+                                                            prediction[1]))
             self._add_prediction_time(
                 self._config.simulation_info.current_timestamp + strategies.prediction.next_prediction_interval())
 

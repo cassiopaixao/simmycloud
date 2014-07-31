@@ -68,7 +68,7 @@ class PredictionErrorStatistics(StatisticsModule):
             prediction = self._config.strategies.prediction.predict(vm_name)
             if prediction:
                 self.prediction_base.append((
-                    (prediction.cpu, prediction.mem),
+                    prediction, #already a tuple
                     self._current_measurement(vm_name)
                     ))
 

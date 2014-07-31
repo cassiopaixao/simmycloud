@@ -36,8 +36,8 @@ class MigrateIfOverload(MigrationStrategy):
             cpu_exceeded = -server.cpu_free
             mem_exceeded = -server.mem_free
             for vm in vms:
-                cpu_exceeded = cpu_exceeded - vm.cpu
-                mem_exceeded = mem_exceeded - vm.mem
+                cpu_exceeded -= vm.cpu
+                mem_exceeded -= vm.mem
                 vms_to_migrate.append(vm)
                 if cpu_exceeded <= 0 and mem_exceeded <= 0:
                     break

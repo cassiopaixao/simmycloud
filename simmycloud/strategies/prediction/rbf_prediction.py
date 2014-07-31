@@ -25,7 +25,6 @@
 import logging
 import math
 
-from core.virtual_machine import VirtualMachine
 from core.strategies import PredictionStrategy
 
 class RBFPrediction(PredictionStrategy):
@@ -63,8 +62,7 @@ class RBFPrediction(PredictionStrategy):
             if math.isnan(new_cpu) or math.isnan(new_mem):
                 raise Exception('NaN at prediction: cpu( {} ) mem( {} )'.format(new_cpu, new_mem))
 
-            new_demands = VirtualMachine('', new_cpu, new_mem)
-            return new_demands
+            return (new_cpu, new_mem)
         except Exception as e:
             self._logger.info('RBF exception error: %s', e)
             if self._logger.level <= logging.DEBUG:
