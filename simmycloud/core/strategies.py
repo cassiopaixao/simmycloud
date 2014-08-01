@@ -77,7 +77,7 @@ class MigrationStrategy(Strategy):
             for vm in vms_to_migrate:
                 self.__old_servers__[vm.name] = self._config.resource_manager.get_server_of_vm(vm.name)
                 if self._logger.level <= logging.DEBUG:
-                    if self.__old_servers[vm.name] == None:
+                    if self.__old_servers__[vm.name] == None:
                         self._logger.debug('Should migrate VM %s, but no server info.', vm.name)
                         raise Exception('Selected, for migration, VM allocated at no server: {}.'.format(vm.name))
                     else:
