@@ -97,7 +97,7 @@ class ResourceManager:
             self._logger.debug('Updating VM demands in server %s: %s', server.describe(), vm.dump())
             server.update_vm(vm)
             self._logger.debug('Updated VM demands in server %s: %s', server.describe(), vm.dump())
-        self._logger.debug('Updating VM demands in pending pool: %s', vm.dump())
+        self._logger.debug('Updating VM demands at VM status info: %s', vm.dump())
         self._vm_status[vm.name].update(vm)
 
     def free_vm_resources(self, vm):
