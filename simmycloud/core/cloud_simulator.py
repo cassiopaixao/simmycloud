@@ -45,10 +45,10 @@ class CloudSimulator:
                 self._logger.debug('Will process event: %s', event.dump())
 
             self._config.simulation_info.scope.append(events[0].type)
-            self._logger.debug('Adding %s to scope.', events[0].type)
+            self._logger.debug('Adding %s to scope.', EventType.get_type(events[0].type))
             self._process_events(events)
             removed_from_scope = self._config.simulation_info.scope.pop()
-            self._logger.debug('Removing %s from scope.', removed_from_scope)
+            self._logger.debug('Removing %s from scope.', EventType.get_type(removed_from_scope))
 
     def _initialize(self):
         self._config.initialize()
@@ -161,18 +161,14 @@ class CloudSimulator:
             EventBuilder.build_notify_event(0, 'simulation_started'))
 
     def _update_simulation_info(self, event):
-        self._config.simulation_info.last_event_timestamp = self._config.simulation_info.current_timestamp
-        self._config.simulation_info.current_timestamp = int(event.time)
-        self._notify_if_timestamp_changed()
+        if event.time > self._config.simulation_info.current_timestamp:
+            self._notify_timestamp_change(self._config.simulation_info.current_timestamp, event.time)
+        self._config.simulation_info.current_timestamp = event.time
 
-    def _notify_if_timestamp_changed(self):
-        if self._config.simulation_info.last_event_timestamp > -1 and \
-           self._config.simulation_info.current_timestamp > self._config.simulation_info.last_event_timestamp:
-            self._config.statistics.notify_event('timestamp_ended',
-                                                 timestamp=self._config.simulation_info.last_event_timestamp)
-            self._config.statistics.notify_event('timestamp_starting',
-                                                 timestamp=self._config.simulation_info.current_timestamp)
-            self._logger.info('Timestamp start: %d', self._config.simulation_info.current_timestamp)
+    def _notify_timestamp_change(self, last_timestamp, new_timestamp):
+        self._config.statistics.notify_event('timestamp_ended',    timestamp=last_timestamp)
+        self._config.statistics.notify_event('timestamp_starting', timestamp=new_timestamp )
+        self._logger.info('Timestamp start: %d', new_timestamp)
 
     def _try_to_allocate_vms_in_pool(self):
         vms = list(self._config.vms_pool.get_ordered_list())
@@ -194,5 +190,4 @@ class CloudSimulator:
 class SimulationInfo:
     def __init__(self):
         self.current_timestamp = 0
-        self.last_event_timestamp = -1
         self.scope = []
