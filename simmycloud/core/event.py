@@ -231,8 +231,8 @@ class EventsQueue:
 
     # TODO: too much dependent of simulation rules to be hard coded
     _PRIORITY = [EventType.NOTIFY,
-                    EventType.TIME_TO_PREDICT,
                     EventType.FINISH,
+                    EventType.TIME_TO_PREDICT,
                     EventType.UPDATE,
                     EventType.UPDATES_FINISHED,
                     EventType.VERIFY_VMS_POOL,
