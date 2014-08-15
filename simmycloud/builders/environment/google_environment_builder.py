@@ -46,7 +46,7 @@ class GoogleEnvironmentBuilder(EnvironmentBuilder):
 class MiniGoogleEnvironmentBuilder(EnvironmentBuilder):
     @staticmethod
     def build(resource_manager):
-        resource_manager.add_servers_of_type(Server('', 0.50, 0.50), 336)
+        resource_manager.add_servers_of_type(Server('', 0.50, 0.50), 337)
         resource_manager.add_servers_of_type(Server('', 0.50, 0.25), 193)
         resource_manager.add_servers_of_type(Server('', 0.50, 0.75), 50)
         resource_manager.add_servers_of_type(Server('', 1.00, 1.00), 40)
