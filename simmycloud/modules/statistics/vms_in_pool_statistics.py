@@ -23,7 +23,7 @@
 ###############################################################################
 
 from core.statistics_manager import StatisticsModule
-from statistics_fields.vms_in_pool_fields import VMsInPoolMaxCPUField, VMsInPoolMaxMemField, VMsInPoolMaxLinearCPUField, VMsInPoolMaxLinearMemField, VMsInPoolMinLinearCPUField, VMsInPoolMinLinearMemField, VMsInPoolListField
+from statistics_fields.vms_in_pool_fields import VMsInPoolMaxCPUField, VMsInPoolMaxMemField, VMsInPoolMaxLinearCPUField, VMsInPoolMaxLinearMemField, VMsInPoolMinLinearCPUField, VMsInPoolMinLinearMemField, VMsInPoolListField, VMsInPoolMinLinearFitsOnlineField, VMsInPoolMinLinearFitsOfflineField
 
 class VMsInPoolStatistics(StatisticsModule):
     CSV_SEPARATOR = ','
@@ -87,4 +87,6 @@ class VMsInPoolStatistics(StatisticsModule):
         self._fields.append(VMsInPoolMaxLinearMemField('max_linear_mem'))
         self._fields.append(VMsInPoolMinLinearCPUField('min_linear_cpu'))
         self._fields.append(VMsInPoolMinLinearMemField('min_linear_mem'))
+        self._fields.append(VMsInPoolMinLinearFitsOnlineField('min_linear_fits_online'))
+        self._fields.append(VMsInPoolMinLinearFitsOfflineField('min_linear_fits_offline'))
         self._fields.append(VMsInPoolListField('vms_in_pool'))

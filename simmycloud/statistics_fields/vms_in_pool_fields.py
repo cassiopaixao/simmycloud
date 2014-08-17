@@ -62,6 +62,30 @@ class VMsInPoolMinLinearMemField(StatisticsField):
         return -1   if not vms_in_pool \
                     else min(vms_in_pool, key=lambda vm: vm.cpu+vm.mem).mem
 
+class VMsInPoolMinLinearFitsOnlineField(StatisticsField):
+    def value(self):
+        vms_in_pool = self._config.vms_pool.get_ordered_list()
+        if vms_in_pool:
+            vm = min(vms_in_pool, key=lambda vm: vm.cpu+vm.mem)
+            for server in self._config.resource_manager.online_servers():
+                if vm.cpu <= server.cpu_free and vm.mem <= server.mem_free:
+                    return 'yes'
+            return 'no'
+        else:
+            return ''
+
+class VMsInPoolMinLinearFitsOfflineField(StatisticsField):
+    def value(self):
+        vms_in_pool = self._config.vms_pool.get_ordered_list()
+        if vms_in_pool:
+            vm = min(vms_in_pool, key=lambda vm: vm.cpu+vm.mem)
+            for server in self._config.resource_manager.offline_servers():
+                if vm.cpu <= server.cpu_free and vm.mem <= server.mem_free:
+                    return 'yes'
+            return 'no'
+        else:
+            return ''
+
 class VMsInPoolListField(StatisticsField):
     def value(self):
         vms_in_pool = self._config.vms_pool.get_ordered_list()
