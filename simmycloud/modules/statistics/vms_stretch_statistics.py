@@ -50,6 +50,7 @@ class VMsStretchStatistics(StatisticsModule):
     def notify_event(self, event, *args, **kwargs):
         if event == 'vm_finished':
             self._print_statistics(kwargs.get('vm'))
+            self._out.flush()
 
         elif event == 'simulation_started':
             self._print_header()

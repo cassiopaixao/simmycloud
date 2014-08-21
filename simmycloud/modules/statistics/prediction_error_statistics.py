@@ -52,6 +52,7 @@ class PredictionErrorStatistics(StatisticsModule):
         if event == 'timestamp_ended' and kwargs.get('timestamp') >= self._next_control_time:
             self._update_base()
             self._persist()
+            self._out.flush()
             self._next_control_time += self._interval
 
         elif event == 'simulation_started':

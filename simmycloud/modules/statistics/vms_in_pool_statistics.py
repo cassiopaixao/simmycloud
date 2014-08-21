@@ -53,6 +53,7 @@ class VMsInPoolStatistics(StatisticsModule):
     def notify_event(self, event, *args, **kwargs):
         if event == 'timestamp_ended' and kwargs.get('timestamp') >= self._next_control_time:
             self._persist()
+            self._out.flush()
             self._next_control_time += self._interval
 
         elif event == 'simulation_started':

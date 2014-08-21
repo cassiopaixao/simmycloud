@@ -74,6 +74,7 @@ class StandardStatistics(StatisticsModule):
     def _persist(self):
         self._logger.info('Persisting statistics for time: %d', self._next_control_time)
         self._print_statistics()
+        self._out.flush()
         self._logger.info('Persisted statistics for time: %d', self._next_control_time)
 
     def _print_header(self):
