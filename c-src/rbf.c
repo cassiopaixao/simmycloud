@@ -38,7 +38,7 @@
 char *outfile=NULL,stdo=1,MAKECAST=0;
 char *infile=NULL;
 char setdrift=1;
-int DIM=2,DELAY=1,CENTER=2,STEP=1;
+int DIM=2,DELAY=1,CENTER=10,STEP=1;
 unsigned int COLUMN=1;
 unsigned int verbosity=0xff;
 long CLENGTH=1000;
