@@ -35,7 +35,8 @@ class LastFiveMeasurementsPrediction(PredictionStrategy):
         last_five = self._get_last_five(vm_name)
         cpu_average = sum(m[self.measurement_reader.CPU] for m in last_five) / len(last_five)
         mem_average = sum(m[self.measurement_reader.MEM] for m in last_five) / len(last_five)
-        return (cpu_average, mem_average)
+        return (min(cpu_average, 1.0),
+                min(mem_average, 1.0))
 
     def _get_last_five(self, vm_name):
         measurements = self.measurement_reader.n_measurements_till(
