@@ -269,7 +269,7 @@ predict(PyObject *self, PyObject *args)
   pycheck_alloc(coefs=(double*)PyMem_RawMalloc(sizeof(double)*(CENTER+1)));
   pycheck_alloc(center=(double**)PyMem_RawMalloc(sizeof(double*)*CENTER));
   for (i=0;i<CENTER;i++)
-    check_alloc(center[i]=(double*)PyMem_RawMalloc(sizeof(double)*DIM));
+    pycheck_alloc(center[i]=(double*)PyMem_RawMalloc(sizeof(double)*DIM));
 
   cstep=LENGTH-1-(DIM-1)*DELAY;
   for (i=0;i<CENTER;i++)
