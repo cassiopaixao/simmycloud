@@ -249,11 +249,13 @@ predict(PyObject *self, PyObject *args)
 
   rescale_data(series,LENGTH,&min,&interval);
   if(PyErr_Occurred()) {
+    PyMem_RawFree(series);
     return NULL;
   }
 
   variance(series,LENGTH,&av,&varianz);
   if(PyErr_Occurred()) {
+    PyMem_RawFree(series);
     return NULL;
   }
 
@@ -371,6 +373,11 @@ predict(PyObject *self, PyObject *args)
 
     prediction = new_el*interval+min;
     if(PyErr_Occurred()) {
+      for (i=0;i<CENTER;i++)
+        PyMem_RawFree(center[i]);
+      PyMem_RawFree(center);
+      PyMem_RawFree(coefs);
+      PyMem_RawFree(series);
       return NULL;
     }
   }
