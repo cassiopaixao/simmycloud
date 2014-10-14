@@ -150,8 +150,11 @@ class SubmitEventsQueue:
         self._fileset.initialize()
         self._logger = self._config.getLogger(self)
         self._max_submit_timestamp = self._config.params.get('max_submit_timestamp')
+        self._max_finish_timestamp = self._config.params.get('max_finish_timestamp')
         if self._max_submit_timestamp:
             self._max_submit_timestamp = int(self._max_submit_timestamp)
+        if self._max_finish_timestamp:
+            self._max_finish_timestamp = int(self._max_finish_timestamp)
 
     def next_event(self):
         self._line =  self._fileset.next_line()
@@ -160,6 +163,9 @@ class SubmitEventsQueue:
             self._logger.info('Max submit timestamp reached (%d). Ignoring upcoming submits.', self._max_submit_timestamp)
             self._logger.debug('First event ignored: %s', event.dump())
             return None
+        elif event and self._max_finish_timestamp and \
+                event.time + event.process_time > self._max_finish_timestamp:
+            event.process_time = self._max_finish_timestamp - event.time
         return event
 
     def current_event(self):
