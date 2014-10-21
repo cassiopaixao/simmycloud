@@ -70,7 +70,13 @@ class GroupingVSVBP(SchedulingStrategy):
             for item_set in self.vms_groups.item_sets_in_resource_class(resource_class):
                 remaining_vms.extend(item_set.items)
 
+        scheduled_at_first_step = len(vms) - len(remaining_vms)
+        self._config.statistics.notify_event('scheduled_at_first_step', scheduled_at_first_step)
+
         remaining_vms = self.schedule_vms_directly(remaining_vms, servers, should_turn_on_servers)
+
+        self._config.statistics.notify_event('scheduled_at_second_step', len(vms) - scheduled_at_first_step - len(remaining_vms))
+
         return remaining_vms
 
 
