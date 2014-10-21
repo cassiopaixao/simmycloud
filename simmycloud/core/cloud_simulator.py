@@ -56,13 +56,15 @@ class CloudSimulator:
         self._add_prediction_time(int(self._config.params['first_prediction_time']))
         self._add_vms_pool_verification_time(int(self._config.params['vms_pool_first_verification']))
         self._vms_pool_verification_interval = int(self._config.params['vms_pool_verification_interval'])
+        self._add_punish_vms_time(int(self._config.params['vms_punishment_first_time']))
+        self._punish_vms_interval = int(self._config.params['vms_punishment_interval'])
         self._add_simulation_started_event()
 
     def _process_events(self, events):
         strategies = self._config.strategies
         events_type = events[0].type
 
-        if events_type in [EventType.TIME_TO_PREDICT, EventType.UPDATES_FINISHED, EventType.VERIFY_VMS_POOL]:
+        if events_type in [EventType.TIME_TO_PREDICT, EventType.UPDATES_FINISHED, EventType.VERIFY_VMS_POOL, EventType.PUNISH_VMS]:
             if len(events) > 1:
                 self._logger.warning('There should be only one event of type %s. %d found.',
                                      EventType.get_type(events[0].type), len(events))
@@ -138,10 +140,34 @@ class CloudSimulator:
         elif event.type == EventType.VERIFY_VMS_POOL:
             self._try_to_allocate_vms_in_pool()
 
+        elif event.type == EventType.PUNISH_VMS:
+            self._punish_performance_of_vms_at_overloaded_servers()
+
         else:
             self._logger.error('Unknown event: %s'.format(event.dump()))
             raise Exception('Unknown event: %s'.format(event.dump()))
 
+
+    def _punish_performance_of_vms_at_overloaded_servers(self):
+        measurement_reader = self._config.module['MeasurementReader']
+        overloaded_servers = measurement_reader.overloaded_servers()
+        for server in overloaded_servers:
+            cpu_demmand = mem_demmand = 0.0
+            for vm in server.vm_list():
+                measurement = measurement_reader.current_measurement(vm.name)
+                cpu_demmand += measurement[measurement_reader.CPU]
+                mem_demmand += measurement[measurement_reader.MEM]
+            cpu_exceeded = max(0.0, cpu_demmand - server.cpu)
+            mem_exceeded = max(0.0, mem_demmand - server.mem)
+            time_punish_factor = min(1.0, cpu_exceeded + mem_exceeded) # in [0.0, 1.0]
+            time_punish = int(self._vms_pool_verification_interval * time_punish_factor)
+            self._logger.debug('Will punish %d VMs of server %s. Time punish factor: %.4f; Time punish: %d',
+                               len(server.vm_list()), server.name, time_punish_factor, time_punish)
+            for vm in server.vm_list():
+                self._config.resource_manager.add_processing_time_to_vm(vm, time_punish)
+            self._config.statistics.notify_event('processing_time_added_to_vms', time_punish*len(server.vm_list()))
+
+        self._add_punish_vms_time(self._config.simulation_info.current_timestamp + self._punish_vms_interval)
 
     def _does_simulation_finished(self):
         if len(self._config.resource_manager.online_vms_names()) == 0 and \
@@ -182,6 +208,9 @@ class CloudSimulator:
 
     def _add_vms_pool_verification_time(self, timestamp):
         self._config.events_queue.add_event(EventBuilder.build_verify_vms_pool_event(timestamp))
+
+    def _add_punish_vms_time(self, timestamp):
+        self._config.events_queue.add_event(EventBuilder.build_punish_vms_event(timestamp))
 
     def _verify_machines_to_turn_off(self, servers=None):
         self._config.strategies.powering_off.power_off_if_necessary(servers)
