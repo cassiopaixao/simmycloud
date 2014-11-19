@@ -159,7 +159,7 @@ class CloudSimulator:
                 mem_demmand += measurement[measurement_reader.MEM]
             cpu_exceeded = max(0.0, cpu_demmand - server.cpu)
             mem_exceeded = max(0.0, mem_demmand - server.mem)
-            time_punish_factor = min(0.95, cpu_exceeded + mem_exceeded) # in [0.0, 0.95]
+            time_punish_factor = min(1.0, cpu_exceeded + mem_exceeded) # in [0.0, 1.0]
             time_punish = int(self._vms_pool_verification_interval * time_punish_factor)
             self._logger.debug('Will punish %d VMs of server %s. Time punish factor: %.4f; Time punish: %d',
                                len(server.vm_list()), server.name, time_punish_factor, time_punish)
