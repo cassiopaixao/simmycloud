@@ -40,19 +40,17 @@ class EventType:
     UPDATES_FINISHED = 5
     VERIFY_VMS_POOL = 6
     TIME_TO_PREDICT = 7
-    PUNISH_VMS = 8
 
     @staticmethod
     def get_type(type_number):
-        if type_number in range(1,9):
+        if type_number in range(1,8):
             types = ['', 'SUBMIT',
                          'UPDATE',
                          'FINISH',
                          'NOTIFY',
                          'UPDATES_FINISHED',
                          'VERIFY_VMS_POOL',
-                         'TIME_TO_PREDICT',
-                         'PUNISH_VMS']
+                         'TIME_TO_PREDICT']
             return types[type_number]
         return 'UNKNOWN'
 
@@ -130,12 +128,6 @@ class EventBuilder:
     @staticmethod
     def build_time_to_predict_event(timestamp):
         return Event(EventType.TIME_TO_PREDICT,
-                     time=timestamp
-            )
-
-    @staticmethod
-    def build_punish_vms_event(timestamp):
-        return Event(EventType.PUNISH_VMS,
                      time=timestamp
             )
 
@@ -253,7 +245,6 @@ class EventsQueue:
     # TODO: too much dependent of simulation rules to be hard coded
     _PRIORITY = [EventType.NOTIFY,
                     EventType.FINISH,
-                    EventType.PUNISH_VMS,
                     EventType.TIME_TO_PREDICT,
                     EventType.UPDATE,
                     EventType.UPDATES_FINISHED,
@@ -261,7 +252,6 @@ class EventsQueue:
                     EventType.SUBMIT,
                     EventType.UNKNOWN
                     ]
-
     def _get_priority(self, event_type):
         return EventsQueue._PRIORITY.index(event_type)
 

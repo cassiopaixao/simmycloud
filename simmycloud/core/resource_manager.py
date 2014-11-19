@@ -120,11 +120,6 @@ class ResourceManager:
                                                                 self._current_timestamp(),
                                                                 process_time)
 
-    def add_processing_time_to_vm(self, vm, processing_time_to_add):
-        vm_status = self._vm_status[vm.name]
-        vm_status.remaining_time = vm_status.last_finish_time - self._current_timestamp() + processing_time_to_add
-        self._add_finish_event(vm)
-
     def is_it_time_to_finish_vm(self, vm):
         return self._current_timestamp() == self._vm_status[vm.name].last_finish_time
 

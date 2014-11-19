@@ -118,7 +118,6 @@ class StandardStatistics(StatisticsModule):
         self._add_field(HighPriorityVMsInPoolField('high_priority_vms_in_pool'))
         self._add_field(LowPriorityVMsInPoolField('low_priority_vms_in_pool'))
         self._add_field(ServersTotalResidualCapacityField('online_residual_capacity'))
-        self._add_field(CounterField('processing_time_added_to_vms'))
         self._add_field(CounterField('submit_events'))
         self._add_field(CounterField('update_events'))
         self._add_field(CounterField('finish_events'))
